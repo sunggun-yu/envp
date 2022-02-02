@@ -11,7 +11,7 @@ const (
 )
 
 type ProxyWrapperConfig struct {
-	Use string `mapstructure:"use"`
+	Default string `mapstructure:"default"`
 }
 
 type ProxyProfile struct {

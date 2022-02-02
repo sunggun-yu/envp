@@ -14,13 +14,13 @@ import (
 )
 
 const (
-	cliName          = "prw"
-	EnvHTTPProxy     = "HTTP_PROXY"
-	EnvHTTPSProxy    = "HTTPS_PROXY"
-	EnvFTPProxy      = "FTP_PROXY"
-	EnvNoProxy       = "NO_PROXY"
-	ConfigKeyUse     = "use"
-	ConfigKeyProfile = "profile" // viper sub section key for profile
+	cliName                 = "prw"
+	EnvHTTPProxy            = "HTTP_PROXY"
+	EnvHTTPSProxy           = "HTTPS_PROXY"
+	EnvFTPProxy             = "FTP_PROXY"
+	EnvNoProxy              = "NO_PROXY"
+	ConfigKeyDefaultProfile = "default"
+	ConfigKeyProfile        = "profile" // viper sub section key for profile
 )
 
 // profile name from flag or config section "use"
@@ -31,8 +31,9 @@ var currentProfile config.ProxyProfile
 
 // root command that perform the command execution
 var rootCmd = &cobra.Command{
-	Use:   cliName,
-	Short: fmt.Sprintf("%v is command line wrapper with selected http/https proxy", cliName),
+	Use:          fmt.Sprintf("%v [flags] -- [command line to execute, such like kubectl]", cliName),
+	Short:        fmt.Sprintf("%v is command line wrapper with selected http/https proxy", cliName),
+	SilenceUsage: true,
 	// TODO: externalize/refactoring
 	Example: `# run command with selected proxy profile
 prw use some-proxy
@@ -56,8 +57,8 @@ prw -p my-proxy -- kubectl get pods
 	// global var for profile will be unmarshalled
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// default proxy file that was selected by "use" command will be used if profile flag is omitted
-		if profile == "" && viper.GetString(ConfigKeyUse) != "" {
-			profile = viper.GetString(ConfigKeyUse)
+		if profile == "" && viper.GetString(ConfigKeyDefaultProfile) != "" {
+			profile = viper.GetString(ConfigKeyDefaultProfile)
 		}
 		// validate if selected profile is existing in the config
 		selected := viper.Sub(ConfigKeyProfile).Sub(profile)
@@ -87,9 +88,7 @@ prw -p my-proxy -- kubectl get pods
 		// check if command can be found in the PATH
 		binary, err := exec.LookPath(command)
 		if err != nil {
-			fmt.Println(err)
-			// simply exit 1. returning error will display help which is not necessary for executing command
-			os.Exit(1)
+			return err
 		}
 
 		// set proxy environment variables
@@ -110,9 +109,7 @@ prw -p my-proxy -- kubectl get pods
 
 		// run commmand
 		if err := syscall.Exec(binary, args, os.Environ()); err != nil {
-			fmt.Println(err)
-			// simply exit 1. returning error will display help which is not necessary for executing command
-			os.Exit(1)
+			return err
 		}
 
 		return nil
