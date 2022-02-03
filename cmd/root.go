@@ -35,14 +35,15 @@ var rootCmd = &cobra.Command{
 	Short:        fmt.Sprintf("%v is command line wrapper with selected http/https proxy", cliName),
 	SilenceUsage: true,
 	// TODO: externalize/refactoring
-	Example: `# run command with selected proxy profile
-prw use some-proxy
-prw -- kubectl cluster-info
-prw -- kubectl get pods
+	Example: `
+  # run command with selected proxy profile
+  prw use some-proxy
+  prw -- kubectl cluster-info
+  prw -- kubectl get pods
 
-# specify proxy profile to use
-prw --profile my-proxy -- kubectl get namespaces
-prw -p my-proxy -- kubectl get pods
+  # specify proxy profile to use
+  prw --profile my-proxy -- kubectl get namespaces
+  prw -p my-proxy -- kubectl get pods
 	`,
 	Args: cobra.MatchAll(
 		cobra.MinimumNArgs(1),
