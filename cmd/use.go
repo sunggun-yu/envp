@@ -24,7 +24,7 @@ var useCmd = &cobra.Command{
 	`,
 	Args: cobra.MatchAll(
 		Arg0AsProfileName(),
-		Arg0ExistingProfile(),
+		Arg0NotExistingProfile(),
 	),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p := args[0]

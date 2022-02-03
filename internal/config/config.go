@@ -11,13 +11,18 @@ const (
 )
 
 type ProxyWrapperConfig struct {
-	Default string `mapstructure:"default"`
+	Default  string                  `mapstructure:"default"`
+	Profiles map[string]ProxyProfile `mapstructure:"profiles"`
 }
 
 type ProxyProfile struct {
 	Description string `mapstructure:"desc"`
 	Host        string `mapstructure:"host"`
 	NoProxy     string `mapstructure:"noproxy"`
+
+	// TODO: remove comment
+	// prepare to accpet and export arbitrary environment variables. so that this tool doesn't need to be limited to proxy ;)
+	Envs map[string]string `mapstructure:"envs"`
 }
 
 // TODO: working on it
