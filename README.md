@@ -87,21 +87,19 @@ but, you can update the config file directly if you need bulk update.
 
 > note: string values must be enclosed in double quote for TOML format
 
-```toml
-use="vpn-a"
+```yaml
 
-[profiles]
-
-  [profiles.<profile-name>]
-  desc="<description of profile>"
-  host="http://<ip>:<port>"
-  
-  [profiles.vpn-a]
-  desc="squid proxy with vpn A"
-  host="http://192.168.3.3:9128"
-  noproxy="localhost,127.0.0.1,something"
-  
-  [profiles.vpn-a]
-  desc="squid proxy with vpn B"
-  host="http://192.168.3.3:9228"
+default: vpn-a
+profiles:
+  <profile-name>:
+    desc: <description of profile>
+    host: "http://<ip>:<port>"
+    no_proxy: <comma separated string e.g. 127.0.0.1,localhost>
+  vpn-a:
+    desc: squid proxy with vpn A
+    host: http://192.168.3.3:3128
+    noproxy: localhost,127.0.0.1,something
+  vpn-b:
+    desc: squid proxy with vpn B
+    host: http://192.168.3.3:3228
 ```

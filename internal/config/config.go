@@ -7,7 +7,7 @@ import (
 
 const (
 	configRoot     string = ".config/prw"
-	configFileName string = "config.toml"
+	configFileName string = "config.yaml"
 )
 
 type ProxyWrapperConfig struct {

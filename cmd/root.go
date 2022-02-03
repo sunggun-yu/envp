@@ -137,7 +137,7 @@ func initConfig() {
 
 	viper.AddConfigPath(configPath)
 	viper.SetConfigName("config")
-	viper.SetConfigType("toml")
+	viper.SetConfigType("yaml")
 	// viper.SetConfigFile(configPath)
 
 	if err := viper.ReadInConfig(); err != nil {
