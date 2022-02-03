@@ -20,7 +20,7 @@ func init() {
 	// selected profile by `use` command should be the profile if it is omitted
 	addCmd.Flags().StringVarP(&profileToAdd.Host, "proxy", "p", "", "proxy host information with port number. e.g. http://<ip or domain>:<port number>")
 	addCmd.MarkFlagRequired("proxy")
-	addCmd.Flags().StringVarP(&profileToAdd.Description, "desc", "d", "", "description of proxy host profile")
+	addCmd.Flags().StringVarP(&profileToAdd.Desc, "desc", "d", "", "description of proxy host profile")
 	addCmd.Flags().StringVarP(&profileToAdd.NoProxy, "noproxy", "n", "127.0.0.1,localhost", "comma seperated string of domains and ip addresses to be applied to no_proxy")
 	rootCmd.AddCommand(addCmd)
 }
@@ -31,7 +31,7 @@ var addCmd = &cobra.Command{
 	SilenceUsage: true,
 	Example: `
   # add new proxy server profile
-  prw add my-proxy -p http://192.168.1.10:3128 -d "my proxy server" -n "127.0.0.1,localhost,google.com"
+  prw add my-proxy -p http://192.168.1.10:3128 -d "my proxy server" -n "127.0.0.1,localhost,something.com"
   
   # proxy server of my-proxy profile will be set for executing command
   prw -- kubectl get pods

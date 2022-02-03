@@ -16,9 +16,9 @@ type ProxyWrapperConfig struct {
 }
 
 type ProxyProfile struct {
-	Description string `mapstructure:"desc"`
-	Host        string `mapstructure:"host"`
-	NoProxy     string `mapstructure:"noproxy"`
+	Desc    string `mapstructure:"desc"`
+	Host    string `mapstructure:"host"`
+	NoProxy string `mapstructure:"noproxy"`
 
 	// TODO: remove comment
 	// prepare to accpet and export arbitrary environment variables. so that this tool doesn't need to be limited to proxy ;)
