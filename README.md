@@ -85,8 +85,6 @@ prw -p g-b -- kubectx g-b && kubectl get pods
 config file will be created at `$HOME/.config/prw/config.yaml` if it is not existing when you run the `pwr`. also it will be updated by sub commands.
 but, you can update the config file directly if you need bulk update.
 
-> note: string values must be enclosed in double quote for YAML format
-
 ```yaml
 default: vpn-a
 profiles:
