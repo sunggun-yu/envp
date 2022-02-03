@@ -90,18 +90,18 @@ but, you can update the config file directly if you need bulk update.
 ```toml
 use="vpn-a"
 
-[profile]
+[profiles]
 
-  [profile.<profile-name>]
+  [profiles.<profile-name>]
   desc="<description of profile>"
   host="http://<ip>:<port>"
   
-  [profile.vpn-a]
+  [profiles.vpn-a]
   desc="squid proxy with vpn A"
   host="http://192.168.3.3:9128"
   noproxy="localhost,127.0.0.1,something"
   
-  [profile.vpn-a]
+  [profiles.vpn-a]
   desc="squid proxy with vpn B"
   host="http://192.168.3.3:9228"
 ```

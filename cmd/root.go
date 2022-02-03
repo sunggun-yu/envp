@@ -20,7 +20,7 @@ const (
 	EnvFTPProxy             = "FTP_PROXY"
 	EnvNoProxy              = "NO_PROXY"
 	ConfigKeyDefaultProfile = "default"
-	ConfigKeyProfile        = "profile" // viper sub section key for profile
+	ConfigKeyProfile        = "profiles" // viper sub section key for profile
 )
 
 // profile name from flag or config section "use"
