@@ -91,7 +91,7 @@ profiles:
   <profile-name>:
     desc: <description of profile>
     host: "http://<ip>:<port>"
-    no_proxy: <comma separated string e.g. 127.0.0.1,localhost>
+    noproxy: <comma separated string e.g. 127.0.0.1,localhost>
   vpn-a:
     desc: squid proxy with vpn A
     host: http://192.168.3.3:3128
