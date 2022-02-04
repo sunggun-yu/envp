@@ -73,7 +73,7 @@ This utility is simplifying setting the proxy environment variable portion by re
 
 ```bash
 # select which profile to use
-envp use <some-proxy-profile-name>
+envp use <profile-name>
 # run command along with envp command
 # type command after --
 envp -- kubectl get pods
@@ -84,7 +84,7 @@ envp -- docker ps -a
 
 ```bash
 # specify the profile to use. --profile / -p
-envp -p <some-proxy-profile-name> -- kubectl get pods
+envp -p <profile-name> -- kubectl get pods
 envp -p a-a -- k9s
 envp -p a-b -- curl -IL https://some-host
 envp -p g-a -- curl -IL https://some-host
