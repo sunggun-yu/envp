@@ -78,6 +78,8 @@ envp use <some-proxy-profile-name>
 # type command after --
 envp -- kubectl get pods
 envp -- k9s
+envp -- vault login
+envp -- docker ps -a
 ```
 
 ```bash
