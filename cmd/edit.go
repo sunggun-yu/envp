@@ -67,6 +67,7 @@ var editCmd = &cobra.Command{
 			// assuming
 			if viper.Sub(ConfigKeyProfile).Get(p) == nil {
 				rc <- fmt.Errorf("profile %v not added", p)
+				return
 			}
 			fmt.Println("profile", p, "updated successfully:", e.Name)
 			rc <- nil

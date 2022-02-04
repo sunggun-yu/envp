@@ -14,8 +14,9 @@ func init() {
 }
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all profiles",
+	Use:     "list",
+	Short:   "List all profiles",
+	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// current default profile name to compare
 		defaultProfile := viper.GetString(ConfigKeyDefaultProfile)
