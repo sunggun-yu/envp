@@ -47,9 +47,9 @@ var listCmd = &cobra.Command{
 // get profile names list
 func listProfiles() ([]string, error) {
 	// unmarshall profile sub section to get keys
-	var c map[string]config.ProxyProfile
+	var c map[string]config.Profile
 
-	// TODO: set the global var for profile sub section in the init of root command.
+	// TODO: separate config into config and profile. and unmarshall profile in global var
 	ps := viper.Sub(ConfigKeyProfile)
 	if ps == nil {
 		return nil, nil

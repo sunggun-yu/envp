@@ -9,65 +9,92 @@ import (
 	"github.com/sunggun-yu/proxy-wrapper/internal/config"
 )
 
-var profileToAdd = config.ProxyProfile{
-	// TODO: remove comment
-	// prepare to accpet and export arbitrary environment variables. so that this tool doesn't need to be limited to proxy ;)
-	Envs: map[string]string{},
+// flags struct for add command
+type addFlags struct {
+	desc    string
+	host    string // TODO: deprecate
+	noproxy string // TODO: deprecate
+	env     []string
 }
 
 func init() {
-	// set optional flag "profile". so that user can select proxy server without swithing proxy profile
-	// selected profile by `use` command should be the profile if it is omitted
-	addCmd.Flags().StringVarP(&profileToAdd.Host, "proxy", "p", "", "proxy host information with port number. e.g. http://<ip or domain>:<port number>")
-	addCmd.MarkFlagRequired("proxy")
-	addCmd.Flags().StringVarP(&profileToAdd.Desc, "desc", "d", "", "description of proxy host profile")
-	addCmd.Flags().StringVarP(&profileToAdd.NoProxy, "noproxy", "n", "127.0.0.1,localhost", "comma seperated string of domains and ip addresses to be applied to no_proxy")
-	rootCmd.AddCommand(addCmd)
+	rootCmd.AddCommand(addCommand())
 }
 
-var addCmd = &cobra.Command{
-	Use:          "add [profile-name-with-no-space] [flags]",
-	Short:        "add profile",
-	SilenceUsage: true,
-	Example: `
+// example of add command
+func cmdExampleAdd() string {
+	return `
   # add new proxy server profile
   prw add my-proxy -p http://192.168.1.10:3128 -d "my proxy server" -n "127.0.0.1,localhost,something.com"
   
   # proxy server of my-proxy profile will be set for executing command
   prw -- kubectl get pods
-	`,
-	Args: cobra.MatchAll(
-		Arg0AsProfileName(),
-		Arg0ExistingProfile(),
-	),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		p := args[0]
-		viper.Set(fmt.Sprintf("%v.%v", ConfigKeyProfile, p), profileToAdd)
+  `
+}
 
-		// TODO: study viper more. watch may not needed if viper.WriteConfig() reloads config after writing file.
-		// watch config changes
-		viper.WatchConfig()
-		// wait for the config file update and verify profile is added or not
-		rc := make(chan error, 1)
-		// I think underlying of viper.OnConfiChange is goroutine. but just run it as goroutine just in case
-		go viper.OnConfigChange(func(e fsnotify.Event) {
-			// assuming
-			if viper.Sub(ConfigKeyProfile).Get(p) == nil {
-				rc <- fmt.Errorf("profile %v not added", p)
-				return
+// add command
+func addCommand() *cobra.Command {
+	// add flags
+	var flags addFlags
+
+	// add command
+	cmd := &cobra.Command{
+		Use:          "add [profile-name-with-no-space] [flags]",
+		Short:        "add profile",
+		SilenceUsage: true,
+		Example:      cmdExampleAdd(),
+		Args: cobra.MatchAll(
+			Arg0AsProfileName(),
+			Arg0ExistingProfile(),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			profileName := args[0]
+			profile := config.Profile{
+				Desc:    flags.desc,
+				Host:    flags.host,    // TODO: deprecate
+				NoProxy: flags.noproxy, // TODO: deprecate
+				Env:     []config.Env{},
 			}
-			fmt.Println("profile", p, "added successfully:", e.Name)
-			rc <- nil
-		})
+			profile.Env = config.ParseEnvFlagToEnv(flags.env)
 
-		if err := viper.WriteConfig(); err != nil {
-			return err
-		}
-		// wait for profile validation channel
-		err := <-rc
-		if err != nil {
-			return err
-		}
-		return nil
-	},
+			viper.Set(fmt.Sprintf("%v.%v", ConfigKeyProfile, profileName), profile)
+
+			// TODO: study viper more. watch may not needed if viper.WriteConfig() reloads config after writing file.
+			// watch config changes
+			viper.WatchConfig()
+			// wait for the config file update and verify profile is added or not
+			rc := make(chan error, 1)
+			// I think underlying of viper.OnConfiChange is goroutine. but just run it as goroutine just in case
+			go viper.OnConfigChange(func(e fsnotify.Event) {
+				// assuming
+				if viper.Sub(ConfigKeyProfile).Get(profileName) == nil {
+					rc <- fmt.Errorf("profile %v not added", profileName)
+					return
+				}
+				fmt.Println("profile", profileName, "added successfully:", e.Name)
+				rc <- nil
+			})
+
+			if err := viper.WriteConfig(); err != nil {
+				return err
+			}
+			// wait for profile validation channel
+			err := <-rc
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+
+	// set optional flag "profile". so that user can select proxy server without swithing proxy profile
+	// selected profile by `use` command should be the profile if it is omitted
+	cmd.Flags().StringVarP(&flags.host, "proxy", "p", "", "proxy host information with port number. e.g. http://<ip or domain>:<port number>")                    // TODO: deprecate
+	cmd.MarkFlagRequired("proxy")                                                                                                                                 // TODO: deprecate
+	cmd.Flags().StringVarP(&flags.noproxy, "noproxy", "n", "127.0.0.1,localhost", "comma seperated string of domains and ip addresses to be applied to no_proxy") // TODO: deprecate
+	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of proxy host profile")
+	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "usage string")
+
+	return cmd
 }

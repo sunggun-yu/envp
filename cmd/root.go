@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	cliName                 = "prw"
-	EnvHTTPProxy            = "HTTP_PROXY"
-	EnvHTTPSProxy           = "HTTPS_PROXY"
-	EnvFTPProxy             = "FTP_PROXY"
-	EnvNoProxy              = "NO_PROXY"
+	cliName                 = "prw"         // TODO: change to envp
+	EnvHTTPProxy            = "HTTP_PROXY"  // TODO: deprecate
+	EnvHTTPSProxy           = "HTTPS_PROXY" // TODO: deprecate
+	EnvFTPProxy             = "FTP_PROXY"   // TODO: deprecate
+	EnvNoProxy              = "NO_PROXY"    // TODO: deprecate
 	ConfigKeyDefaultProfile = "default"
 	ConfigKeyProfile        = "profiles" // viper sub section key for profile
 )
@@ -27,7 +27,7 @@ const (
 var profile string
 
 // unmarshalled object from selected profile in the config file
-var currentProfile config.ProxyProfile
+var currentProfile config.Profile
 
 // root command that perform the command execution
 var rootCmd = &cobra.Command{
@@ -76,9 +76,9 @@ var rootCmd = &cobra.Command{
 		}
 
 		// validate if selected profile has proxy host
-		if currentProfile.Host == "" {
-			return fmt.Errorf("profile '%v' has no proxy host", profile)
-		}
+		// if currentProfile.Host == "" {
+		// 	return fmt.Errorf("profile '%v' has no proxy host", profile)
+		// }
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -106,6 +106,11 @@ var rootCmd = &cobra.Command{
 		if currentProfile.NoProxy != "" {
 			os.Setenv(strings.ToLower(EnvNoProxy), currentProfile.NoProxy)
 			os.Setenv(strings.ToUpper(EnvNoProxy), currentProfile.NoProxy)
+		}
+
+		// set additional environment variables to the session
+		for _, e := range currentProfile.Env {
+			os.Setenv(e.Name, e.Value)
 		}
 
 		// run commmand
