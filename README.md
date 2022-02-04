@@ -1,8 +1,8 @@
-# Proxy Wrapper
+# ENVP
 
 > working on it
 
-This is command line wrapper utility to execute command with multiple proxy servers to simplify following use case.
+ENVP is wrapper cli that apply profile based environment variable for your command line execution to simplify following use case.
 
 - I need to run some command with proxy:
 
@@ -48,6 +48,15 @@ This is command line wrapper utility to execute command with multiple proxy serv
 
 - My company has multiple VPN servers for the infrastructures. switching VPN back and forth in the local is annoying. so I run some docker container to connect the VPN server and proxying request with Squid Proxy. it works great on browser with FoxyProxy. but still need to set environment variable for my terminal.
 
+- I have multiple workstation to run docker remotely
+
+  ```bash
+  DOCKER_HOST=ssh://user@workstation-1 docker ps -a
+  DOCKER_HOST=ssh://user@workstation-2 docker ps -a
+  ```
+
+and more and more cases like `VAULT_ADDR`, `ARGO_SERVER`, and so on.
+
 These are my actual daily use cases. 😉
 
 ## Installation
@@ -55,7 +64,7 @@ These are my actual daily use cases. 😉
 > working on it
 
 ```bash
-brew install sunggun-yu/tap/prw
+brew install sunggun-yu/tap/envp
 ```
 
 ## Usage
@@ -64,39 +73,55 @@ This utility is simplifying setting the proxy environment variable portion by re
 
 ```bash
 # select which profile to use
-prw use <some-proxy-profile-name>
-# run command along with prw command
+envp use <some-proxy-profile-name>
+# run command along with envp command
 # type command after --
-prw -- kubectl get pods
-prw -- k9s
+envp -- kubectl get pods
+envp -- k9s
 ```
 
 ```bash
 # specify the profile to use. --profile / -p
-prw -p <some-proxy-profile-name> -- kubectl get pods
-prw -p a-a -- k9s
-prw -p a-b -- curl -IL https://some-host
-prw -p g-a -- curl -IL https://some-host
-prw -p g-b -- kubectx g-b && kubectl get pods
+envp -p <some-proxy-profile-name> -- kubectl get pods
+envp -p a-a -- k9s
+envp -p a-b -- curl -IL https://some-host
+envp -p g-a -- curl -IL https://some-host
+envp -p g-b -- kubectx g-b && kubectl get pods
 ```
 
 ## Config file
 
-config file will be created at `$HOME/.config/prw/config.yaml` if it is not existing when you run the `pwr`. also it will be updated by sub commands.
+config file will be created at `$HOME/.config/envp/config.yaml` if it is not existing when you run the `envp`. also it will be updated by sub commands.
 but, you can update the config file directly if you need bulk update.
 
 ```yaml
 default: vpn-a
 profiles:
   <profile-name>:
-    desc: <description of profile>
-    host: "http://<ip>:<port>"
-    noproxy: <comma separated string e.g. 127.0.0.1,localhost>
+    env:
+      - name: env-name
+        value: env-value
   vpn-a:
     desc: squid proxy with vpn A
-    host: http://192.168.3.3:3128
-    noproxy: localhost,127.0.0.1,something
+    env:
+      - name: HTTP_PROXY
+        value: http://192.168.3.3:3128
+      - name: NO_PROXY
+        value: localhost,127.0.0.1,something
   vpn-b:
-    desc: squid proxy with vpn B
-    host: http://192.168.3.3:3228
+    desc: squid proxy with vpn b
+    env:
+      - name: HTTP_PROXY
+        value: http://192.168.3.3:3228
+      - name: NO_PROXY
+        value: localhost,127.0.0.1,something
+  my-lab-1:
+    desc: my lab cluster 1
+    env:
+      - name: DOCKER_HOST
+        value: ssh://user@workstation-1
+      - name: VAULT_ADDR
+        value: https://vault.mylab-1
+      - name: ARGO_SERVER
+        value: https://argocd.mylab-1
 ```
