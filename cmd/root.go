@@ -50,7 +50,13 @@ func rootCommand() *cobra.Command {
 		SilenceUsage: true,
 		Example:      cmdExampleRoot(),
 		Args: cobra.MatchAll(
-			cobra.MinimumNArgs(1),
+			func(cmd *cobra.Command, args []string) error {
+				if len(args) == 0 {
+					cmd.Help()
+					os.Exit(0)
+				}
+				return nil
+			},
 			func(cmd *cobra.Command, args []string) error {
 				if len(args) > 0 && cmd.ArgsLenAtDash() < 0 {
 					return fmt.Errorf("command should start after --")
