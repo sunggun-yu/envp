@@ -19,8 +19,8 @@ var deleteCmd = &cobra.Command{
 	SilenceUsage: true,
 	Example: `
   # delete profile
-  prw delete my-proxy
-  prw del another-profile
+  envp delete profile
+  envp del another-profile
 	`,
 	Args: cobra.MatchAll(
 		Arg0AsProfileName(),

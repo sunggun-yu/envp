@@ -18,10 +18,8 @@ type Config struct {
 }
 
 type Profile struct {
-	Desc    string `mapstructure:"desc"`
-	Host    string `mapstructure:"host"`    // TODO: deprecate
-	NoProxy string `mapstructure:"noproxy"` // TODO: deprecate
-	Env     []Env  `mapstructure:"env"`
+	Desc string `mapstructure:"desc"`
+	Env  []Env  `mapstructure:"env"`
 }
 
 // go yaml doesn't support capitalized key. so follow k8s env format

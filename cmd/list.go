@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/sunggun-yu/proxy-wrapper/internal/config"
+	"github.com/sunggun-yu/envp/internal/config"
 )
 
 func init() {

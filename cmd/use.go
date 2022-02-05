@@ -16,11 +16,11 @@ var useCmd = &cobra.Command{
 	Short:        "Set default profile",
 	SilenceUsage: true,
 	Example: `
-  # set default profile to my-proxy
-  prw use my-proxy
+  # set default profile to profile-name
+  envp use profile-name
   
-  # proxy server of my-proxy profile will be set for executing command
-  prw -- kubectl get pods
+  # env vars in the default profile will be set during command execution
+  envp -- kubectl get pods
 	`,
 	Args: cobra.MatchAll(
 		Arg0AsProfileName(),

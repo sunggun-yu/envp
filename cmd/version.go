@@ -14,7 +14,7 @@ func init() {
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version of Proxy-Wrapper",
+	Short: "Print the version of envp",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(Version)
 	},

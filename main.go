@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/sunggun-yu/proxy-wrapper/cmd"
+	"github.com/sunggun-yu/envp/cmd"
 )
 
 var (

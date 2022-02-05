@@ -5,20 +5,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/sunggun-yu/proxy-wrapper/internal/config"
+	"github.com/sunggun-yu/envp/internal/config"
 )
 
 const (
-	cliName                 = "prw"         // TODO: change to envp
-	EnvHTTPProxy            = "HTTP_PROXY"  // TODO: deprecate
-	EnvHTTPSProxy           = "HTTPS_PROXY" // TODO: deprecate
-	EnvFTPProxy             = "FTP_PROXY"   // TODO: deprecate
-	EnvNoProxy              = "NO_PROXY"    // TODO: deprecate
+	cliName                 = "envp"
 	ConfigKeyDefaultProfile = "default"
 	ConfigKeyProfile        = "profiles" // viper sub section key for profile
 )
@@ -32,18 +27,18 @@ var currentProfile config.Profile
 // root command that perform the command execution
 var rootCmd = &cobra.Command{
 	Use:          fmt.Sprintf("%v [flags] -- [command line to execute, such like kubectl]", cliName),
-	Short:        fmt.Sprintf("%v is command line wrapper with selected http/https proxy", cliName),
+	Short:        fmt.Sprintf("%v is command line wrapper with selected env var profile", cliName),
 	SilenceUsage: true,
 	// TODO: externalize/refactoring
 	Example: `
-  # run command with selected proxy profile
-  prw use some-proxy
-  prw -- kubectl cluster-info
-  prw -- kubectl get pods
+  # run command with selected profile. assuming HTTPS_PROXY is set in the profile
+  envp use profile
+  envp -- kubectl cluster-info
+  envp -- kubectl get pods
 
-  # specify proxy profile to use
-  prw --profile my-proxy -- kubectl get namespaces
-  prw -p my-proxy -- kubectl get pods
+  # specify env var profile to use
+  envp --profile my-proxy -- kubectl get namespaces
+  envp -p my-proxy -- kubectl get pods
 	`,
 	Args: cobra.MatchAll(
 		cobra.MinimumNArgs(1),
@@ -57,7 +52,7 @@ var rootCmd = &cobra.Command{
 	// profile validation will be performed
 	// global var for profile will be unmarshalled
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		// default proxy file that was selected by "use" command will be used if profile flag is omitted
+		// default profile that was selected by "use" command will be used if profile flag is omitted
 		if profile == "" && viper.GetString(ConfigKeyDefaultProfile) != "" {
 			profile = viper.GetString(ConfigKeyDefaultProfile)
 		}
@@ -69,16 +64,12 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("profile '%v' is not existing", profile)
 		}
 
-		// unmarshall to ProxyProfile
+		// unmarshall to Profile
 		err := selected.Unmarshal(&currentProfile)
 		if err != nil {
 			return fmt.Errorf("profile '%v' malformed configuration %e", profile, err)
 		}
 
-		// validate if selected profile has proxy host
-		// if currentProfile.Host == "" {
-		// 	return fmt.Errorf("profile '%v' has no proxy host", profile)
-		// }
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -90,22 +81,6 @@ var rootCmd = &cobra.Command{
 		binary, err := exec.LookPath(command)
 		if err != nil {
 			return err
-		}
-
-		// set proxy environment variables
-		// set both lower and upper case env variable just in case 😆
-		os.Setenv(strings.ToLower(EnvHTTPProxy), currentProfile.Host)
-		os.Setenv(strings.ToUpper(EnvHTTPProxy), currentProfile.Host)
-
-		os.Setenv(strings.ToLower(EnvHTTPSProxy), currentProfile.Host)
-		os.Setenv(strings.ToUpper(EnvHTTPSProxy), currentProfile.Host)
-
-		os.Setenv(strings.ToLower(EnvFTPProxy), currentProfile.Host)
-		os.Setenv(strings.ToUpper(EnvFTPProxy), currentProfile.Host)
-
-		if currentProfile.NoProxy != "" {
-			os.Setenv(strings.ToLower(EnvNoProxy), currentProfile.NoProxy)
-			os.Setenv(strings.ToUpper(EnvNoProxy), currentProfile.NoProxy)
 		}
 
 		// set additional environment variables to the session
@@ -124,7 +99,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	// set optional flag "profile". so that user can select proxy server without swithing proxy profile
+	// set optional flag "profile". so that user can select profile without swithing
 	// selected profile by `use` command should be the profile if it is omitted
 	rootCmd.Flags().StringVarP(&profile, "profile", "p", "", "usage string")
 }
@@ -137,8 +112,8 @@ func initConfig() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	// configPath := filepath.Join(home, "/.config/prw/config.toml")
-	configPath := filepath.Join(home, ".config/prw")
+	// configPath := filepath.Join(home, "/.config/envp/config.toml")
+	configPath := filepath.Join(home, ".config/envp")
 
 	viper.AddConfigPath(configPath)
 	viper.SetConfigName("config")

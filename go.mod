@@ -1,4 +1,4 @@
-module github.com/sunggun-yu/proxy-wrapper
+module github.com/sunggun-yu/envp
 
 go 1.16
 

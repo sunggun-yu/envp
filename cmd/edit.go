@@ -6,14 +6,12 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/sunggun-yu/proxy-wrapper/internal/config"
+	"github.com/sunggun-yu/envp/internal/config"
 )
 
 type editFlags struct {
-	desc    string
-	host    string // TODO: deprecate
-	noproxy string // TODO: deprecate
-	env     []string
+	desc string
+	env  []string
 }
 
 func init() {
@@ -23,9 +21,9 @@ func init() {
 // example of edit command
 func cmdExampleEdit() string {
 	return `
-  # edit exiting proxy server profile
-  prw edit my-proxy -p http://192.168.1.10:3128 -d "my proxy server" -n "127.0.0.1,localhost,something-1.com"
-  prw edit my-proxy -n "127.0.0.1,localhost,something-1.com,something-2.com"
+  envp edit my-proxy \
+    -d "updated profile desc" \
+    -e "NO_PROXY=127.0.0.1,localhost"
   `
 }
 
@@ -58,16 +56,6 @@ func editCommand() *cobra.Command {
 			// update desc if input is not empty
 			if flags.desc != "" {
 				profile.Desc = flags.desc
-			}
-
-			// update host if input is not empty
-			if flags.host != "" {
-				profile.Host = flags.host
-			}
-
-			// update noproxy if input is not empty
-			if flags.noproxy != "" {
-				profile.NoProxy = flags.noproxy
 			}
 
 			menv := config.ParseEnvFlagToMap(flags.env)
@@ -109,11 +97,9 @@ func editCommand() *cobra.Command {
 		},
 	}
 
-	// set optional flag "profile". so that user can select proxy server without swithing proxy profile
+	// set optional flag "profile". so that user can select profile without swithing profile
 	// selected profile by `use` command should be the profile if it is omitted
-	cmd.Flags().StringVarP(&flags.host, "proxy", "p", "", "proxy host information with port number. e.g. http://<ip or domain>:<port number>")
-	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of proxy host profile")
-	cmd.Flags().StringVarP(&flags.noproxy, "noproxy", "n", "127.0.0.1,localhost", "comma seperated string of domains and ip addresses to be applied to no_proxy")
+	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of profile")
 	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "usage string")
 
 	return cmd

@@ -6,15 +6,13 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/sunggun-yu/proxy-wrapper/internal/config"
+	"github.com/sunggun-yu/envp/internal/config"
 )
 
 // flags struct for add command
 type addFlags struct {
-	desc    string
-	host    string // TODO: deprecate
-	noproxy string // TODO: deprecate
-	env     []string
+	desc string
+	env  []string
 }
 
 func init() {
@@ -24,11 +22,11 @@ func init() {
 // example of add command
 func cmdExampleAdd() string {
 	return `
-  # add new proxy server profile
-  prw add my-proxy -p http://192.168.1.10:3128 -d "my proxy server" -n "127.0.0.1,localhost,something.com"
-  
-  # proxy server of my-proxy profile will be set for executing command
-  prw -- kubectl get pods
+  envp add my-proxy \
+    -d "profile desc" \
+    -e HTTPS_PROXY=http://some-proxy:3128 \
+    -e "NO_PROXY=127.0.0.1,localhost" \
+    -e "DOCKER_HOST=ssh://myuser@some-server"
   `
 }
 
@@ -51,10 +49,8 @@ func addCommand() *cobra.Command {
 
 			profileName := args[0]
 			profile := config.Profile{
-				Desc:    flags.desc,
-				Host:    flags.host,    // TODO: deprecate
-				NoProxy: flags.noproxy, // TODO: deprecate
-				Env:     []config.Env{},
+				Desc: flags.desc,
+				Env:  []config.Env{},
 			}
 			profile.Env = config.ParseEnvFlagToEnv(flags.env)
 
@@ -88,12 +84,9 @@ func addCommand() *cobra.Command {
 		},
 	}
 
-	// set optional flag "profile". so that user can select proxy server without swithing proxy profile
+	// set optional flag "profile". so that user can select profile without swithing it
 	// selected profile by `use` command should be the profile if it is omitted
-	cmd.Flags().StringVarP(&flags.host, "proxy", "p", "", "proxy host information with port number. e.g. http://<ip or domain>:<port number>")                    // TODO: deprecate
-	cmd.MarkFlagRequired("proxy")                                                                                                                                 // TODO: deprecate
-	cmd.Flags().StringVarP(&flags.noproxy, "noproxy", "n", "127.0.0.1,localhost", "comma seperated string of domains and ip addresses to be applied to no_proxy") // TODO: deprecate
-	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of proxy host profile")
+	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of profile")
 	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "usage string")
 
 	return cmd
