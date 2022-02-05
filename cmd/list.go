@@ -46,7 +46,7 @@ var listCmd = &cobra.Command{
 
 // get profile names list
 func listProfiles() ([]string, error) {
-	// unmarshall profile sub section to get keys
+	// unmarshal profile sub section to get keys
 	var c map[string]config.Profile
 
 	// TODO: separate config into config and profile. and unmarshall profile in global var

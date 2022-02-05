@@ -13,95 +13,105 @@ import (
 )
 
 const (
-	cliName                 = "envp"
 	ConfigKeyDefaultProfile = "default"
 	ConfigKeyProfile        = "profiles" // viper sub section key for profile
 )
 
-// profile name from flag or config section "use"
-var profile string
+var rootCmd = rootCommand()
 
-// unmarshalled object from selected profile in the config file
-var currentProfile config.Profile
+func init() {
+	cobra.OnInitialize(initConfig)
+}
 
-// root command that perform the command execution
-var rootCmd = &cobra.Command{
-	Use:          fmt.Sprintf("%v [flags] -- [command line to execute, such like kubectl]", cliName),
-	Short:        fmt.Sprintf("%v is command line wrapper with selected env var profile", cliName),
-	SilenceUsage: true,
-	// TODO: externalize/refactoring
-	Example: `
+// example of add command
+func cmdExampleRoot() string {
+	return `
   # run command with selected profile. assuming HTTPS_PROXY is set in the profile
   envp use profile
   envp -- kubectl cluster-info
   envp -- kubectl get pods
-
+  
   # specify env var profile to use
-  envp --profile my-proxy -- kubectl get namespaces
-  envp -p my-proxy -- kubectl get pods
-	`,
-	Args: cobra.MatchAll(
-		cobra.MinimumNArgs(1),
-		func(cmd *cobra.Command, args []string) error {
-			if len(args) > 0 && cmd.ArgsLenAtDash() < 0 {
-				return fmt.Errorf("command should start after --")
-			}
-			return nil
-		},
-	),
-	// profile validation will be performed
-	// global var for profile will be unmarshalled
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		// default profile that was selected by "use" command will be used if profile flag is omitted
-		if profile == "" && viper.GetString(ConfigKeyDefaultProfile) != "" {
-			profile = viper.GetString(ConfigKeyDefaultProfile)
-		}
-		// validate if selected profile is existing in the config
-		selected := viper.Sub(ConfigKeyProfile).Sub(profile)
-
-		// check if selected profile from flag or use section in the config is existing
-		if selected == nil {
-			return fmt.Errorf("profile '%v' is not existing", profile)
-		}
-
-		// unmarshall to Profile
-		err := selected.Unmarshal(&currentProfile)
-		if err != nil {
-			return fmt.Errorf("profile '%v' malformed configuration %e", profile, err)
-		}
-
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-
-		// first arg should be the command to execute
-		command := args[0]
-
-		// check if command can be found in the PATH
-		binary, err := exec.LookPath(command)
-		if err != nil {
-			return err
-		}
-
-		// set additional environment variables to the session
-		for _, e := range currentProfile.Env {
-			os.Setenv(e.Name, e.Value)
-		}
-
-		// run commmand
-		if err := syscall.Exec(binary, args, os.Environ()); err != nil {
-			return err
-		}
-
-		return nil
-	},
+  envp profile-name -- kubectl get namespaces
+  `
 }
 
-func init() {
-	cobra.OnInitialize(initConfig)
-	// set optional flag "profile". so that user can select profile without swithing
-	// selected profile by `use` command should be the profile if it is omitted
-	rootCmd.Flags().StringVarP(&profile, "profile", "p", "", "usage string")
+func rootCommand() *cobra.Command {
+	// profile name from flag or config section "use"
+	var profile string
+	var command []string
+
+	// unmarshalled object from selected profile in the config file
+	var currentProfile config.Profile
+
+	cmd := &cobra.Command{
+		Use:          "envp profile-name [flags] -- [command line to execute, such like kubectl]",
+		Short:        "ENVP is cli wrapper that sets environment variables by profile based configuration when you execute the command line",
+		SilenceUsage: true,
+		Example:      cmdExampleRoot(),
+		Args: cobra.MatchAll(
+			cobra.MinimumNArgs(1),
+			func(cmd *cobra.Command, args []string) error {
+				if len(args) > 0 && cmd.ArgsLenAtDash() < 0 {
+					return fmt.Errorf("command should start after --")
+				}
+				return nil
+			},
+		),
+		// profile validation will be performed
+		// global var for profile will be unmarshalled
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			/*
+				envp -- command         : ArgsLenAtDash == 0
+				envp profile -- command : ArgsLenAtDash == 1
+			*/
+			switch {
+			case cmd.ArgsLenAtDash() == 0:
+				profile = viper.GetString(ConfigKeyDefaultProfile)
+				command = args
+			case cmd.ArgsLenAtDash() == 1:
+				profile = args[0]
+				command = args[1:]
+			}
+
+			// check if selected profile is existing
+			if viper.Sub(ConfigKeyProfile).Sub(profile) == nil {
+				return fmt.Errorf("profile '%v' is not existing", profile)
+			}
+
+			// validate if selected profile is existing in the config
+			selected := viper.Sub(ConfigKeyProfile).Sub(profile)
+			// unmarshal to Profile
+			err := selected.Unmarshal(&currentProfile)
+			if err != nil {
+				return fmt.Errorf("profile '%v' malformed configuration %e", profile, err)
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			// first arg should be the command to execute
+			// check if command can be found in the PATH
+			binary, err := exec.LookPath(command[0])
+			if err != nil {
+				return err
+			}
+
+			// set environment variables to the session
+			for _, e := range currentProfile.Env {
+				os.Setenv(e.Name, e.Value)
+			}
+
+			// run commmand
+			if err := syscall.Exec(binary, command, os.Environ()); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+	return cmd
 }
 
 func initConfig() {
