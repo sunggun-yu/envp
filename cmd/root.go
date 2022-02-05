@@ -115,29 +115,50 @@ func rootCommand() *cobra.Command {
 }
 
 func initConfig() {
-
-	// read config file
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	// configPath := filepath.Join(home, "/.config/envp/config.toml")
-	configPath := filepath.Join(home, ".config/envp")
-
-	viper.AddConfigPath(configPath)
+	// set default empty profile name
+	viper.SetDefault("default", "")
+	// set default empty profiles
+	viper.SetDefault("profiles", map[string]map[string]interface{}{})
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	// viper.SetConfigFile(configPath)
+	viper.AddConfigPath(configPath(".config/envp")) // $HOME/.config/envp
+	// write config file if file does not existing
+	viper.SafeWriteConfig()
 
+	// read config file
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Can't read config:", err)
 		os.Exit(1)
 	}
+	// write config file with current config that is readed
+	// this write will be helpful for the case config file is existing but empty
+	viper.WriteConfig()
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+// get config path. mkdir -p it not exist
+func configPath(base string) string {
+	// get $HOME
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	// get config path : $HOME/.config/envp
+	path := filepath.Join(home, base)
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			// mkdir -p if directory is not existing
+			os.MkdirAll(path, 0755)
+		} else {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+	return path
 }
