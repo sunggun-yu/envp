@@ -58,8 +58,6 @@ and more cases like `VAULT_ADDR`, `ARGO_SERVER`, and so on and so on.
 
 ## Installation
 
-> Not available yet. will publish asap once all basic feature is done 😳
-
 ```bash
 brew install sunggun-yu/tap/envp
 ```
