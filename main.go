@@ -20,5 +20,5 @@ func main() {
 
 // Version returns version and build information. it's injected from ldflags
 func Version() string {
-	return fmt.Sprintf("prw %s, commit %s, built at %s", version, commit, date)
+	return fmt.Sprintf("envp %s, commit %s, built at %s", version, commit, date)
 }
