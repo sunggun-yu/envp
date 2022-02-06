@@ -183,9 +183,11 @@ envp delete profile
 envp del another-profile
 ```
 
-### Grouping profile
+### Nested profile
 
-grouping profile is possible natually thanks to `viper`.
+> Note: there is bug. do not recommend use nested profile (group)
+
+nested profile is possible natually thanks to `viper`.
 you can simply divide group and profile by `.` in the profile name.
 
 ```bash
@@ -196,9 +198,9 @@ envp delete group.profile
 envp delete group
 ```
 
-- add, use, edit, delete command and executing cli with grouped profile is possible but not fully tested.
-- if you delete group with delete command, it will also delete all the profiles under the group.
-- nested grouping may not be supported or depth will be limited in the future.
+- add, use, edit, delete command and executing cli with nested profile is possible but not fully tested.
+- if you delete parent profile with delete command, it will also delete all child profiles.
+- nested profile may not be supported or depth will be limited in the future.
 - there is bug when update parent profile. I recommend not to use group(nested profile) for now (until it is fixed and tested) 🙇🏻‍♂️
 
 ## Config file
