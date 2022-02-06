@@ -1,5 +1,7 @@
 # ENVP
 
+![release](https://github.com/sunggun-yu/envp/actions/workflows/release.yaml/badge.svg)
+
 ENVP is cli wrapper that sets environment variables by profile based configuration when you execute the command line.
 
 ## Use Cases I want to solve
