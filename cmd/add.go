@@ -54,7 +54,11 @@ func addCommand() *cobra.Command {
 			}
 			profile.Env = config.ParseEnvFlagToEnv(flags.env)
 
-			viper.Set(fmt.Sprintf("%v.%v", ConfigKeyProfile, profileName), profile)
+			// get new viper instance to add item properly
+			sub := viper.Sub(ConfigKeyProfile)
+			sub.Set(profileName, profile)
+			// overwrite the entire profiles
+			viper.Set(ConfigKeyProfile, sub.AllSettings())
 
 			// TODO: study viper more. watch may not needed if viper.WriteConfig() reloads config after writing file.
 			// watch config changes

@@ -124,7 +124,7 @@ func initConfig() {
 	// set default empty profile name
 	viper.SetDefault("default", "")
 	// set default empty profiles
-	viper.SetDefault("profiles", map[string]map[string]interface{}{})
+	viper.SetDefault("profiles", config.Profile{})
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(configPath(".config/envp")) // $HOME/.config/envp
