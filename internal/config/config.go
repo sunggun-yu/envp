@@ -12,8 +12,10 @@ type Config struct {
 
 // Profile is struct of profile
 type Profile struct {
-	Desc string `mapstructure:"desc"`
-	Env  []Env  `mapstructure:"env"`
+	// make Profile a Graph structure for better travesal for grouping.
+	Profile map[string]Profile `mapstructure:",remain"` // set it with mapstructure remain to unmashal config file item `profiles` as Profile
+	Desc    string             `mapstructure:"desc"`
+	Env     []Env              `mapstructure:"env"`
 }
 
 // Env represent environment variable name and value
