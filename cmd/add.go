@@ -65,8 +65,7 @@ func addCommand() *cobra.Command {
 			viper.WatchConfig()
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
-			// I think underlying of viper.OnConfiChange is goroutine. but just run it as goroutine just in case
-			go viper.OnConfigChange(func(e fsnotify.Event) {
+			viper.OnConfigChange(func(e fsnotify.Event) {
 				// assuming
 				if viper.Sub(ConfigKeyProfile).Get(profileName) == nil {
 					rc <- fmt.Errorf("profile %v not added", profileName)

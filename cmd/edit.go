@@ -42,24 +42,29 @@ func editCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			profileName := args[0]
+			var profile config.Profile
 
-			var c map[string]config.Profile
-			ps := viper.Sub(ConfigKeyProfile)
-			if err := ps.Unmarshal(&c); err != nil {
-				return err
+			// get entire profiles to update it properly
+			sub := viper.Sub(ConfigKeyProfile)
+
+			// validate selected profile
+			selected := sub.Sub(profileName)
+			// unmarshal into Profile
+			err := selected.Unmarshal(&profile)
+			if err != nil {
+				return fmt.Errorf("profile '%v' malformed configuration %e", profile, err)
 			}
-
-			// corresponding profile object in the profiles
-			// existence of profile has been guaranteed by arg validation. but nil checking might be good to have.
-			profile := c[profileName]
 
 			// update desc if input is not empty
 			if flags.desc != "" {
 				profile.Desc = flags.desc
 			}
 
+			// update env
+			// parse flag.env into a map for easy checking
 			menv := config.ParseEnvFlagToMap(flags.env)
 			if menv != nil {
+				// loop profile.Env and check if flag.env has updated value(exist)
 				for _, e := range profile.Env {
 					if _, exist := menv[e.Name]; !exist {
 						menv[e.Name] = e.Value
@@ -68,14 +73,17 @@ func editCommand() *cobra.Command {
 				profile.Env = config.MapToEnv(menv)
 			}
 
+			// set updated profile to sub - profiles
+			sub.Set(profileName, profile)
+
 			// overwrite the profile
-			viper.Set(fmt.Sprintf("%v.%v", ConfigKeyProfile, profileName), profile)
+			viper.Set(ConfigKeyProfile, sub.AllSettings())
 			// watch config changes
 			viper.WatchConfig()
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
-			// I think underlying of viper.OnConfiChange is goroutine. but just run it as goroutine just in case
-			go viper.OnConfigChange(func(e fsnotify.Event) {
+
+			viper.OnConfigChange(func(e fsnotify.Event) {
 				// assuming
 				if viper.Sub(ConfigKeyProfile).Get(profileName) == nil {
 					rc <- fmt.Errorf("profile %v not added", profileName)
@@ -89,7 +97,7 @@ func editCommand() *cobra.Command {
 				return err
 			}
 			// wait for profile validation channel
-			err := <-rc
+			err = <-rc
 			if err != nil {
 				return err
 			}
