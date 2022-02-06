@@ -197,9 +197,9 @@ envp delete group
 ```
 
 - add, use, edit, delete command and executing cli with grouped profile is possible but not fully tested.
-- list grouped profile is still working in progress. you can only see the group name by list command.
 - if you delete group with delete command, it will also delete all the profiles under the group.
-- nested grouping may not be supported or depth will be limited.
+- nested grouping may not be supported or depth will be limited in the future.
+- there is bug when update parent profile. I recommend not to use group(nested profile) for now (until it is fixed and tested) 🙇🏻‍♂️
 
 ## Config file
 
