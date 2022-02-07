@@ -33,7 +33,8 @@ func init() {
 // example of add command
 func cmdExampleRoot() string {
 	return `
-  # run command with selected profile. assuming HTTPS_PROXY is set in the profile
+  # run command with selected environment variable profile.
+  # (example is assuming HTTPS_PROXY is set in the profile)
   envp use profile
   envp -- kubectl cluster-info
   envp -- kubectl get pods
@@ -81,6 +82,12 @@ func rootCommand() *cobra.Command {
 			*/
 			switch {
 			case cmd.ArgsLenAtDash() == 0:
+				// this case requires default profile.
+				if viper.GetString(ConfigKeyDefaultProfile) == "" {
+					printExample(cmd)
+					return fmt.Errorf("default profile is not set. please set default profile")
+				}
+
 				profile = viper.GetString(ConfigKeyDefaultProfile)
 				command = args
 			case cmd.ArgsLenAtDash() == 1:
@@ -170,4 +177,10 @@ func configPath(base string) string {
 		}
 	}
 	return path
+}
+
+// print example only
+func printExample(cmd *cobra.Command) {
+	fmt.Println("Example:")
+	fmt.Println(cmd.Example)
 }
