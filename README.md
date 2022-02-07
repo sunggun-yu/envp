@@ -211,6 +211,18 @@ so that, user can export env vars with `eval $(envp show --export)` command
 eval $(envp show --export)
 ```
 
+>💡 TIP
+>
+> you can create new shell, `bash/zsh`, session with `envp`
+
+```bash
+envp -- zsh
+envp profile-name -- zsh
+
+# and exit shell session if you want to reset/unset env vars
+exit
+```
+
 ### Edit profile
 
 ```bash
