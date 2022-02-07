@@ -167,6 +167,48 @@ result:
 
 - default profile will be marked with `*`
 
+### Show all environment variables of profile
+
+print out default profile's env vars:
+
+```bash
+envp show 
+
+ENV_VAR_1=ENV_VAL_1
+ENV_VAR_2=ENV_VAL_2
+ENV_VAR_3=ENV_VAL_3
+```
+
+show env vars of specific profile:
+
+```bash
+envp show some-profile
+
+ENV_VAR_1=ENV_VAL_1
+ENV_VAR_2=ENV_VAL_2
+ENV_VAR_3=ENV_VAL_3
+```
+
+show with export option `--export`, `-e`
+
+```bash
+envp show --export
+
+# you can export env vars of profile with following command
+# eval $(envp show --export)
+# eval $(envp show profile-name --export)
+
+export ENV_VAR_1=ENV_VAL_1
+export ENV_VAR_2=ENV_VAL_2
+export ENV_VAR_3=ENV_VAL_3
+```
+
+so that, user can export env vars with `eval $(envp show --export)` command
+
+```bash
+eval $(envp show --export)
+```
+
 ### Edit profile
 
 ```bash
