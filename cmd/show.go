@@ -8,6 +8,7 @@ import (
 	"github.com/sunggun-yu/envp/internal/config"
 )
 
+// flags struct for show command
 type showFlags struct {
 	export bool
 }
@@ -16,7 +17,7 @@ func init() {
 	rootCmd.AddCommand(showCommand())
 }
 
-// example of edit command
+// example of show command
 func cmdExampleShow() string {
 	return `
   envp show
@@ -26,13 +27,14 @@ func cmdExampleShow() string {
   `
 }
 
+// showCommand prints out all the environment variables of profile
 func showCommand() *cobra.Command {
 	var flags showFlags
 	var profileName string
 
 	cmd := &cobra.Command{
 		Use:          "show profile-name [flags]",
-		Short:        "show profile-name",
+		Short:        "Print the environment variables of profile",
 		SilenceUsage: true,
 		Example:      cmdExampleShow(),
 		RunE: func(cmd *cobra.Command, args []string) error {

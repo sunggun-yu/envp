@@ -9,6 +9,7 @@ import (
 	"github.com/sunggun-yu/envp/internal/config"
 )
 
+// flags struct for edit command
 type editFlags struct {
 	desc string
 	env  []string
@@ -22,17 +23,18 @@ func init() {
 func cmdExampleEdit() string {
 	return `
   envp edit my-proxy \
-    -d "updated profile desc" \
-    -e "NO_PROXY=127.0.0.1,localhost"
+    -d 'updated profile desc' \
+    -e 'NO_PROXY=127.0.0.1,localhost'
   `
 }
 
+// editCommand edit/update environment variable profile and it's envionment variables in the config file
 func editCommand() *cobra.Command {
 	var flags editFlags
 
 	cmd := &cobra.Command{
-		Use:          "edit [profile-name-with-no-space] [flags]",
-		Short:        "edit profile",
+		Use:          "edit profile-name [flags]",
+		Short:        "Edit environment variable profile",
 		SilenceUsage: true,
 		Example:      cmdExampleEdit(),
 		Args: cobra.MatchAll(
@@ -105,10 +107,9 @@ func editCommand() *cobra.Command {
 		},
 	}
 
-	// set optional flag "profile". so that user can select profile without swithing profile
-	// selected profile by `use` command should be the profile if it is omitted
 	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of profile")
-	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "usage string")
+	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "'VAR=VAL' format of string")
+	cmd.MarkFlagRequired("env")
 
 	return cmd
 }

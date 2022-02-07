@@ -19,6 +19,13 @@ const (
 
 var rootCmd = rootCommand()
 
+// Execute execute the root command and sub commands
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 }
@@ -36,6 +43,7 @@ func cmdExampleRoot() string {
   `
 }
 
+// rootCommand sets environment variable and execute command line
 func rootCommand() *cobra.Command {
 	// profile name from flag or config section "use"
 	var profile string
@@ -45,7 +53,7 @@ func rootCommand() *cobra.Command {
 	var currentProfile config.Profile
 
 	cmd := &cobra.Command{
-		Use:          "envp profile-name [flags] -- [command line to execute, such like kubectl]",
+		Use:          "envp profile-name [flags] -- [command line to execute, e.g. kubectl]",
 		Short:        "ENVP is cli wrapper that sets environment variables by profile based configuration when you execute the command line",
 		SilenceUsage: true,
 		Example:      cmdExampleRoot(),
@@ -120,6 +128,7 @@ func rootCommand() *cobra.Command {
 	return cmd
 }
 
+// initConfig read the config file and initialize if config file is not existing
 func initConfig() {
 	// set default empty profile name
 	viper.SetDefault("default", "")
@@ -139,12 +148,6 @@ func initConfig() {
 	// write config file with current config that is readed
 	// this write will be helpful for the case config file is existing but empty
 	viper.WriteConfig()
-}
-
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
 }
 
 // get config path. mkdir -p it not exist

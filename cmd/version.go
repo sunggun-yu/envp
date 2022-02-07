@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// make it public to set version from main.go
 var Version string
 
 func init() {

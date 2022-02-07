@@ -72,7 +72,7 @@ brew install sunggun-yu/tap/envp
 ENVP is cli wrapper that sets environment variables by profile based configuration when you execute the command line
 
 Usage:
-  envp profile-name [flags] -- [command line to execute, such like kubectl]
+  envp profile-name [flags] -- [command line to execute, e.g. kubectl]
   envp [command]
 
 Examples:
@@ -87,13 +87,14 @@ Examples:
   
 
 Available Commands:
-  add         add profile
+  add         Add environment variable profile
   completion  Generate the autocompletion script for the specified shell
-  delete      
-  edit        edit profile
+  delete      Delete environment variable profile
+  edit        Edit environment variable profile
   help        Help about any command
-  list        List all profiles
-  use         Set default profile
+  list        List all environment variable profiles
+  show        Print the environment variables of profile
+  use         Set default environment variable profile
   version     Print the version of envp
 
 Flags:

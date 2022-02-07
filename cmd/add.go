@@ -23,22 +23,23 @@ func init() {
 func cmdExampleAdd() string {
 	return `
   envp add my-proxy \
-    -d "profile desc" \
+    -d 'profile desc' \
+    -e 'VAR=VAL' \
     -e HTTPS_PROXY=http://some-proxy:3128 \
-    -e "NO_PROXY=127.0.0.1,localhost" \
-    -e "DOCKER_HOST=ssh://myuser@some-server"
+    -e 'NO_PROXY=127.0.0.1,localhost' \
+    -e 'DOCKER_HOST=ssh://myuser@some-server'
   `
 }
 
-// add command
+// addCommand add/create environment variable profile and it's envionment variables in the config file
 func addCommand() *cobra.Command {
 	// add flags
 	var flags addFlags
 
 	// add command
 	cmd := &cobra.Command{
-		Use:          "add [profile-name-with-no-space] [flags]",
-		Short:        "add profile",
+		Use:          "add profile-name",
+		Short:        "Add environment variable profile",
 		SilenceUsage: true,
 		Example:      cmdExampleAdd(),
 		Args: cobra.MatchAll(
@@ -87,10 +88,8 @@ func addCommand() *cobra.Command {
 		},
 	}
 
-	// set optional flag "profile". so that user can select profile without swithing it
-	// selected profile by `use` command should be the profile if it is omitted
 	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of profile")
-	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "usage string")
-
+	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "'VAR=VAL' format of string")
+	cmd.MarkFlagRequired("env")
 	return cmd
 }

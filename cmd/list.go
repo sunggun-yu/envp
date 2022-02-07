@@ -21,10 +21,11 @@ func cmdExampleList() string {
   `
 }
 
+// listCommand prints out list of environment variable profiles
 func listCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "list",
-		Short:        "List all profile names",
+		Short:        "List all environment variable profiles",
 		Aliases:      []string{"ls"},
 		SilenceUsage: true,
 		Example:      cmdExampleList(),
