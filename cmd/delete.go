@@ -44,14 +44,12 @@ func deleteCommand() *cobra.Command {
 				fmt.Println("WARN: Deleting default profile. please set default profile once it is deleted")
 			}
 
-			// TODO: study viper more. watch may not needed if viper.WriteConfig() reloads config after writing file.
-			// watch config changes
-			viper.WatchConfig()
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
 			// I think underlying of viper.OnConfiChange is goroutine. but just run it as goroutine just in case
+			// it's being watched in root initConfig - viper.WatchConfig()
 			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if viper.Sub(ConfigKeyProfile).Get(p) != nil {
+				if configProfiles.Get(p) != nil {
 					rc <- fmt.Errorf("profile %v not deleted", p)
 					return
 				}

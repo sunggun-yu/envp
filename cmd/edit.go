@@ -46,11 +46,8 @@ func editCommand() *cobra.Command {
 			profileName := args[0]
 			var profile config.Profile
 
-			// get entire profiles to update it properly
-			sub := viper.Sub(ConfigKeyProfile)
-
 			// validate selected profile
-			selected := sub.Sub(profileName)
+			selected := configProfiles.Sub(profileName)
 			// unmarshal into Profile
 			err := selected.Unmarshal(&profile)
 			if err != nil {
@@ -75,19 +72,19 @@ func editCommand() *cobra.Command {
 				profile.Env = config.MapToEnv(menv)
 			}
 
-			// set updated profile to sub - profiles
-			sub.Set(profileName, profile)
+			// set updated profile
+			configProfiles.Set(profileName, profile)
 
 			// overwrite the profile
-			viper.Set(ConfigKeyProfile, sub.AllSettings())
-			// watch config changes
-			viper.WatchConfig()
+			viper.Set(ConfigKeyProfile, configProfiles.AllSettings())
+
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
 
+			// it's being watched in root initConfig - viper.WatchConfig()
 			viper.OnConfigChange(func(e fsnotify.Event) {
 				// assuming
-				if viper.Sub(ConfigKeyProfile).Get(profileName) == nil {
+				if configProfiles.Get(profileName) == nil {
 					rc <- fmt.Errorf("profile %v not added", profileName)
 					return
 				}

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/sunggun-yu/envp/internal/config"
@@ -17,7 +18,10 @@ const (
 	ConfigKeyProfile        = "profiles" // viper sub section key for profile
 )
 
-var rootCmd = rootCommand()
+var (
+	configProfiles *viper.Viper
+	rootCmd        = rootCommand()
+)
 
 // Execute execute the root command and sub commands
 func Execute() {
@@ -55,7 +59,7 @@ func rootCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:          "envp profile-name [flags] -- [command line to execute, e.g. kubectl]",
-		Short:        "ENVP is cli wrapper that sets environment variables by profile based configuration when you execute the command line",
+		Short:        "ENVP is cli wrapper that sets environment variables by profile when you execute the command line",
 		SilenceUsage: true,
 		Example:      cmdExampleRoot(),
 		Args: cobra.MatchAll(
@@ -96,12 +100,12 @@ func rootCommand() *cobra.Command {
 			}
 
 			// check if selected profile is existing
-			if viper.Sub(ConfigKeyProfile).Sub(profile) == nil {
+			if configProfiles.Sub(profile) == nil {
 				return fmt.Errorf("profile '%v' is not existing", profile)
 			}
 
 			// validate if selected profile is existing in the config
-			selected := viper.Sub(ConfigKeyProfile).Sub(profile)
+			selected := configProfiles.Sub(profile)
 			// unmarshal to Profile
 			err := selected.Unmarshal(&currentProfile)
 			if err != nil {
@@ -140,7 +144,7 @@ func initConfig() {
 	// set default empty profile name
 	viper.SetDefault("default", "")
 	// set default empty profiles
-	viper.SetDefault("profiles", config.Profile{})
+	viper.SetDefault("profiles", config.Profiles{})
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(configPath(".config/envp")) // $HOME/.config/envp
@@ -152,9 +156,22 @@ func initConfig() {
 		fmt.Println("Can't read config:", err)
 		os.Exit(1)
 	}
+
+	// Init Profiles
+	// should watch write config event
+	viper.WatchConfig()
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		// reload profiles
+		configProfiles = viper.Sub(ConfigKeyProfile)
+	})
+
 	// write config file with current config that is readed
 	// this write will be helpful for the case config file is existing but empty
-	viper.WriteConfig()
+	err := viper.WriteConfig()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 // get config path. mkdir -p it not exist

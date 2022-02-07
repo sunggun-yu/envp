@@ -69,7 +69,7 @@ brew install sunggun-yu/tap/envp
 > note: command line must start after double dash `--`.
 
 ```txt
-ENVP is cli wrapper that sets environment variables by profile based configuration when you execute the command line
+ENVP is cli wrapper that sets environment variables by profile when you execute the command line
 
 Usage:
   envp profile-name [flags] -- [command line to execute, e.g. kubectl]
@@ -77,7 +77,8 @@ Usage:
 
 Examples:
 
-  # run command with selected profile. assuming HTTPS_PROXY is set in the profile
+  # run command with selected environment variable profile.
+  # (example is assuming HTTPS_PROXY is set in the profile)
   envp use profile
   envp -- kubectl cluster-info
   envp -- kubectl get pods
@@ -230,8 +231,6 @@ envp del another-profile
 
 ### Nested profile
 
-> Note: there is bug. do not recommend use nested profile (group)
-
 nested profile is possible natually thanks to `viper`.
 you can simply divide group and profile by `.` in the profile name.
 
@@ -243,10 +242,7 @@ envp delete group.profile
 envp delete group
 ```
 
-- add, use, edit, delete command and executing cli with nested profile is possible but not fully tested.
 - if you delete parent profile with delete command, it will also delete all child profiles.
-- nested profile may not be supported or depth will be limited in the future.
-- there is bug when update parent profile. I recommend not to use group(nested profile) for now (until it is fixed and tested) 🙇🏻‍♂️
 
 ## Config file
 

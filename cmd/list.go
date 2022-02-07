@@ -31,9 +31,9 @@ func listCommand() *cobra.Command {
 		Example:      cmdExampleList(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// unmarshal config item "profiles" to Profile
-			var root config.Profile
-			err := viper.Sub(ConfigKeyProfile).Unmarshal(&root)
+			// unmarshal config item "profiles" to Profiles
+			var root config.Profiles
+			err := configProfiles.Unmarshal(&root)
 			if err != nil {
 				return err
 			}
@@ -64,8 +64,8 @@ func listCommand() *cobra.Command {
 
 // list all the profiles in dot "." format. e.g. mygroup.my-subgroup.my-profile
 // Do DFS to build viper keys for profiles
-func listProfileKeys(key string, profiles config.Profile, arr *[]string) *[]string {
-	for k, v := range profiles.Profile {
+func listProfileKeys(key string, profiles config.Profiles, arr *[]string) *[]string {
+	for k, v := range profiles {
 		var s string
 		if key == "" {
 			s = k
@@ -78,7 +78,7 @@ func listProfileKeys(key string, profiles config.Profile, arr *[]string) *[]stri
 			*arr = append(*arr, s)
 		}
 		// recursion
-		listProfileKeys(s, v, arr)
+		listProfileKeys(s, v.Profiles, arr)
 	}
 	return arr
 }

@@ -47,7 +47,7 @@ func showCommand() *cobra.Command {
 
 			var profile config.Profile
 			// validate selected profile
-			selected := viper.Sub(ConfigKeyProfile).Sub(profileName)
+			selected := configProfiles.Sub(profileName)
 			if selected == nil {
 				return fmt.Errorf("profile %v is not existing", profileName)
 			}

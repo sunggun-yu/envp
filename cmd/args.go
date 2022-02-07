@@ -4,12 +4,11 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func Arg0NotExistingProfile() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		selected := viper.Sub(ConfigKeyProfile).Sub(args[0])
+		selected := configProfiles.Sub(args[0])
 		if selected == nil {
 			return fmt.Errorf("%v is not existing in the profile list", args[0])
 		}
@@ -19,7 +18,11 @@ func Arg0NotExistingProfile() cobra.PositionalArgs {
 
 func Arg0ExistingProfile() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		selected := viper.Sub(ConfigKeyProfile).Sub(args[0])
+		profiles := configProfiles
+		if profiles == nil || len(profiles.AllKeys()) == 0 {
+			return nil
+		}
+		selected := profiles.Sub(args[0])
 		if selected != nil {
 			return fmt.Errorf("%v is existing already", args[0])
 		}

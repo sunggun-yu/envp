@@ -10,12 +10,16 @@ type Config struct {
 	Profile string `mapstructure:"profile"` // profile config file path
 }
 
+// Profiles is struct of profiles
+type Profiles map[string]Profile
+
 // Profile is struct of profile
 type Profile struct {
-	// make Profile a Graph structure for better travesal for grouping.
-	Profile map[string]Profile `mapstructure:",remain"` // set it with mapstructure remain to unmashal config file item `profiles` as Profile
-	Desc    string             `mapstructure:"desc"`
-	Env     []Env              `mapstructure:"env"`
+	// set it with mapstructure remain to unmashal config file item `profiles` as Profile
+	// yaml inline fixed the nested profiles issue
+	Profiles `mapstructure:",remain" yaml:",inline"`
+	Desc     string `mapstructure:"desc"`
+	Env      []Env  `mapstructure:"env"`
 }
 
 // Env represent environment variable name and value

@@ -55,20 +55,22 @@ func addCommand() *cobra.Command {
 			}
 			profile.Env = config.ParseEnvFlagToEnv(flags.env)
 
-			// get new viper instance to add item properly
-			sub := viper.Sub(ConfigKeyProfile)
-			sub.Set(profileName, profile)
-			// overwrite the entire profiles
-			viper.Set(ConfigKeyProfile, sub.AllSettings())
+			// set profile as default profile if default is empty and no profile is exsiting
+			if len(configProfiles.AllKeys()) == 0 {
+				viper.Set(ConfigKeyDefaultProfile, profileName)
+			}
+			// set profile
+			configProfiles.Set(profileName, profile)
 
-			// TODO: study viper more. watch may not needed if viper.WriteConfig() reloads config after writing file.
-			// watch config changes
-			viper.WatchConfig()
+			// overwrite the entire profiles
+			viper.Set(ConfigKeyProfile, configProfiles.AllSettings())
+
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
+			// it's being watched in root initConfig - viper.WatchConfig()
 			viper.OnConfigChange(func(e fsnotify.Event) {
 				// assuming
-				if viper.Sub(ConfigKeyProfile).Get(profileName) == nil {
+				if configProfiles.Get(profileName) == nil {
 					rc <- fmt.Errorf("profile %v not added", profileName)
 					return
 				}
