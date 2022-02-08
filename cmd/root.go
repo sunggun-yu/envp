@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"syscall"
 
 	"github.com/fsnotify/fsnotify"
@@ -20,6 +21,7 @@ const (
 
 var (
 	configProfiles *viper.Viper
+	profileList    []string
 	rootCmd        = rootCommand()
 )
 
@@ -58,10 +60,11 @@ func rootCommand() *cobra.Command {
 	var currentProfile config.Profile
 
 	cmd := &cobra.Command{
-		Use:          "envp profile-name [flags] -- [command line to execute, e.g. kubectl]",
-		Short:        "ENVP is cli wrapper that sets environment variables by profile when you execute the command line",
-		SilenceUsage: true,
-		Example:      cmdExampleRoot(),
+		Use:               "envp profile-name [flags] -- [command line to execute, e.g. kubectl]",
+		Short:             "ENVP is cli wrapper that sets environment variables by profile when you execute the command line",
+		SilenceUsage:      true,
+		Example:           cmdExampleRoot(),
+		ValidArgsFunction: ValidArgsProfileList,
 		Args: cobra.MatchAll(
 			func(cmd *cobra.Command, args []string) error {
 				if len(args) == 0 {
@@ -161,8 +164,8 @@ func initConfig() {
 	// should watch write config event
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
-		// reload profiles
-		configProfiles = viper.Sub(ConfigKeyProfile)
+		// reload profiles, and profile key list
+		initProfiles()
 	})
 
 	// write config file with current config that is readed
@@ -200,4 +203,20 @@ func configPath(base string) string {
 func printExample(cmd *cobra.Command) {
 	fmt.Println("Example:")
 	fmt.Println(cmd.Example)
+}
+
+// TODO: refactoring
+// init profiles and profile list
+func initProfiles() {
+	// reload profiles
+	configProfiles = viper.Sub(ConfigKeyProfile)
+	// unmarshal config item "profiles" to Profiles
+	var root config.Profiles
+	err := configProfiles.Unmarshal(&root)
+	if err != nil {
+		return
+	}
+	// generate profile list
+	profileList = *listProfileKeys("", root, &[]string{})
+	sort.Strings(profileList)
 }

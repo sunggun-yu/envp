@@ -33,10 +33,11 @@ func showCommand() *cobra.Command {
 	var profileName string
 
 	cmd := &cobra.Command{
-		Use:          "show profile-name [flags]",
-		Short:        "Print the environment variables of profile",
-		SilenceUsage: true,
-		Example:      cmdExampleShow(),
+		Use:               "show profile-name [flags]",
+		Short:             "Print the environment variables of profile",
+		SilenceUsage:      true,
+		ValidArgsFunction: ValidArgsProfileList,
+		Example:           cmdExampleShow(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			if len(args) == 0 {

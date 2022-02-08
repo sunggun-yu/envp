@@ -33,6 +33,7 @@ func useCommand() *cobra.Command {
 			Arg0AsProfileName(),
 			Arg0NotExistingProfile(),
 		),
+		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p := args[0]
 			viper.Set(ConfigKeyDefaultProfile, p)

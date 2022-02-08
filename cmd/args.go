@@ -41,3 +41,10 @@ func Arg0AsProfileName() cobra.PositionalArgs {
 		return nil
 	}
 }
+
+var ValidArgsProfileList = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	return profileList, cobra.ShellCompDirectiveNoFileComp
+}

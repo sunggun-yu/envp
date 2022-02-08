@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -31,25 +30,10 @@ func listCommand() *cobra.Command {
 		Example:      cmdExampleList(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// unmarshal config item "profiles" to Profiles
-			var root config.Profiles
-			err := configProfiles.Unmarshal(&root)
-			if err != nil {
-				return err
-			}
-
-			// get profile names in dot "." delimetered format and sort
-			profiles := *listProfileKeys("", root, &[]string{})
-			if len(profiles) < 1 {
-				fmt.Println("no profile is existing")
-				return nil
-			}
-			sort.Strings(profiles)
-
 			// current default profile name to compare
 			defaultProfile := viper.GetString(ConfigKeyDefaultProfile)
 			// print profiles. mark default profile with *
-			for _, p := range profiles {
+			for _, p := range profileList {
 				if p == defaultProfile {
 					fmt.Println("*", p)
 				} else {

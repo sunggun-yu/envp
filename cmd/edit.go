@@ -41,6 +41,7 @@ func editCommand() *cobra.Command {
 			Arg0AsProfileName(),
 			Arg0NotExistingProfile(),
 		),
+		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			profileName := args[0]
