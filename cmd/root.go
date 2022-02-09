@@ -3,15 +3,14 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
-	"syscall"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/sunggun-yu/envp/internal/config"
+	"github.com/sunggun-yu/envp/internal/shell"
 )
 
 const (
@@ -119,23 +118,10 @@ func rootCommand() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// first arg should be the command to execute
-			// check if command can be found in the PATH
-			binary, err := exec.LookPath(command[0])
-			if err != nil {
+			// Execute command
+			if err := shell.Execute(command, currentProfile.Env); err != nil {
 				return err
 			}
-
-			// set environment variables to the session
-			for _, e := range currentProfile.Env {
-				os.Setenv(e.Name, e.Value)
-			}
-
-			// run commmand
-			if err := syscall.Exec(binary, command, os.Environ()); err != nil {
-				return err
-			}
-
 			return nil
 		},
 	}

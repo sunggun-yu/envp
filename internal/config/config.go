@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -19,14 +20,30 @@ type Profile struct {
 	// yaml inline fixed the nested profiles issue
 	Profiles `mapstructure:",remain" yaml:",inline"`
 	Desc     string `mapstructure:"desc"`
-	Env      []Env  `mapstructure:"env"`
+	Env      Envs   `mapstructure:"env"`
 }
+
+type Envs []Env
 
 // Env represent environment variable name and value
 // go yaml doesn't support capitalized key. so follow k8s env format
 type Env struct {
 	Name  string
 	Value string
+}
+
+// Override String() to make it KEY=VAL format
+func (e Env) String() string {
+	return fmt.Sprint(e.Name, "=", e.Value)
+}
+
+func (e Envs) String() string {
+	s := []string{}
+	for _, i := range e {
+		s = append(s, i.String())
+	}
+	r := strings.Join(s, ",")
+	return r
 }
 
 // ParseEnvFlagToMap parse string format "env=val" to map "env: val". it can be used fo dup check from slice of Env
