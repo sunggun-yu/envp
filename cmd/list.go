@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/sunggun-yu/envp/internal/config"
@@ -35,7 +36,7 @@ func listCommand() *cobra.Command {
 			// print profiles. mark default profile with *
 			for _, p := range profileList {
 				if p == defaultProfile {
-					fmt.Println("*", p)
+					color.Green("* %s", p)
 				} else {
 					fmt.Println(" ", p)
 				}
