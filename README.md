@@ -60,8 +60,16 @@ and more cases like `VAULT_ADDR`, `ARGO_SERVER`, and so on and so on.
 
 ## Installation
 
+brew:
+
 ```bash
 brew install sunggun-yu/tap/envp
+```
+
+go install:
+
+```bash
+go install github.com/sunggun-yu/envp@<version>
 ```
 
 ## Usage
