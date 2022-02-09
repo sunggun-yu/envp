@@ -95,6 +95,7 @@ Available Commands:
   help        Help about any command
   list        List all environment variable profiles
   show        Print the environment variables of profile
+  start       Start new shell session with environment variable profile
   use         Set default environment variable profile
   version     Print the version of envp
 
@@ -148,6 +149,18 @@ envp g-a -- curl -IL https://some-host
 envp g-b -- kubectx g-b && kubectl get pods
 envp my-lab -- docker ps -a
 envp my-vault-1 -- vault login
+```
+
+### Start new shell session with your default `$SHELL`
+
+You can create new shell session with injected environment variable from your profile. It might be more useful for most of use case since you can seemlessly execute multiple of commands.
+
+```bash
+# start new shell session with default profile
+envp start
+
+# start new shell session with specific profile
+envp start <profile-name>
 ```
 
 ### List profiles
