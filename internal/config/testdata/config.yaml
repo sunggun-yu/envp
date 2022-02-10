@@ -1,0 +1,59 @@
+default: docker
+profiles:
+  lab:
+    cluster1:
+      desc: lab.cluster1
+      env:
+      - name: HTTPS_PROXY
+        value: http://192.168.1.10:443
+      - name: NO_PROXY
+        value: localhost,127.0.0.1,.someapis.local
+      - name: KUBECONFIG
+        value: /Users/meow/.kube/lab-cluster1
+    cluster2:
+      desc: lab.cluster2
+      env:
+      - name: HTTPS_PROXY
+        value: http://192.168.1.20:443
+      - name: NO_PROXY
+        value: localhost,127.0.0.1,.someapis.local
+      - name: KUBECONFIG
+        value: /Users/meow/.kube/lab-cluster2
+    cluster3:
+      desc: lab.cluster3
+      env:
+      - name: HTTPS_PROXY
+        value: http://192.168.1.30:443
+      - name: NO_PROXY
+        value: localhost,127.0.0.1,.someapis.local
+      - name: KUBECONFIG
+        value: /Users/meow/.kube/lab-cluster3
+  docker:
+    desc: docker
+    env:
+    - name: DOCKER_HOST
+      value: ssh://meow@192.168.1.40
+  org:
+    nprod:
+      argocd:
+        argo1:
+          desc: org.nprod.argocd.argo1
+          env:
+          - name: ARGO_SERVER
+            value: https://argocd.nprod-1
+        argo2:
+          desc: org.nprod.argocd.argo2
+          env:
+          - name: ARGO_SERVER
+            value: https://argocd.nprod-2
+      vpn:
+        vpn1:
+          desc: org.nprod.vpn.vpn1
+          env:
+          - name: HTTPS_PROXY
+            value: http://192.168.2.7:9228
+        vpn2:
+          desc: org.nprod.vpn.vpn2
+          env:
+          - name: HTTPS_PROXY
+            value: http://192.168.2.7:9128

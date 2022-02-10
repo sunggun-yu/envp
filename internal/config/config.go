@@ -8,11 +8,11 @@ import (
 
 // cli config that includes profile config file path
 type Config struct {
-	Profile string `mapstructure:"profile"` // profile config file path
+	Profiles Profiles `mapstructure:"profiles"` // profile config file path
 }
 
-// Profiles is map of profile
-type Profiles map[string]Profile
+// Profiles is map of profile. make item pointer to perform add/edit/delete
+type Profiles map[string]*Profile
 
 // Profile is struct of profile
 type Profile struct {
@@ -113,4 +113,23 @@ func SortEnv(e []Env) {
 	sort.Slice(e, func(i, j int) bool {
 		return e[i].Name < e[j].Name
 	})
+}
+
+// FindProfileByDotNotationKey finds profile from dot notation of key such as "a.b.c"
+func FindProfileByDotNotationKey(key string, profiles Profiles) *Profile {
+	if key == "" {
+		return nil
+	}
+	keys := strings.Split(key, ".")
+	current := profiles
+	var profile *Profile
+	for _, k := range keys {
+		if p, ok := current[k]; ok {
+			current = p.Profiles
+			profile = p
+		} else {
+			return nil
+		}
+	}
+	return profile
 }

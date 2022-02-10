@@ -1,10 +1,13 @@
 package config_test
 
 import (
+	"fmt"
+	"io/ioutil"
 	"reflect"
 	"testing"
 
 	"github.com/sunggun-yu/envp/internal/config"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -98,5 +101,54 @@ func TestMapToEnv(t *testing.T) {
 	actual := config.MapToEnv(testData)
 	if !reflect.DeepEqual(expected, actual) {
 		t.Error("Not meet expectation", expected, "-", actual)
+	}
+}
+
+func TestFindProfileByDotNotationKey(t *testing.T) {
+
+	cfg, _ := ioutil.ReadFile("testdata/config.yaml")
+
+	var testData config.Config
+	err := yaml.Unmarshal(cfg, &testData)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if p := config.FindProfileByDotNotationKey("docker", testData.Profiles); p == nil {
+		t.Error("Should not be nil")
+	} else if p.Desc != "docker" {
+		t.Error("Not meet expectation")
+		fmt.Println(p)
+	}
+
+	// happy path
+	if p := config.FindProfileByDotNotationKey("org.nprod.argocd.argo2", testData.Profiles); p == nil {
+		t.Error("Should not be nil")
+	} else if p.Desc != "org.nprod.argocd.argo2" {
+		t.Error("Not meet expectation")
+		fmt.Println(p)
+	}
+
+	// not existing key
+	if p := config.FindProfileByDotNotationKey("org.nprod.vault", testData.Profiles); p != nil {
+		t.Error("Should be nil")
+	}
+
+	// empty string
+	if p := config.FindProfileByDotNotationKey("", testData.Profiles); p != nil {
+		t.Error("Should be nil")
+	}
+
+	// messed format
+	if p := config.FindProfileByDotNotationKey(".aaa..aaa", testData.Profiles); p != nil {
+		t.Error("Should be nil")
+	}
+
+	// pointer check
+	testChangeData := "changed"
+	p := config.FindProfileByDotNotationKey("docker", testData.Profiles)
+	p.Desc = testChangeData
+	if testData.Profiles["docker"].Desc != testChangeData {
+		t.Error("nested item should be pointer")
 	}
 }
