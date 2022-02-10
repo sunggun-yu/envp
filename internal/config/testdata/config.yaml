@@ -1,6 +1,7 @@
 default: docker
 profiles:
   lab:
+    desc: lab
     cluster1:
       desc: lab.cluster1
       env:
@@ -34,8 +35,11 @@ profiles:
     - name: DOCKER_HOST
       value: ssh://meow@192.168.1.40
   org:
+    desc: org
     nprod:
+      desc: nprod
       argocd:
+        desc: argocd
         argo1:
           desc: org.nprod.argocd.argo1
           env:
