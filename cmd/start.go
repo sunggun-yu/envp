@@ -69,7 +69,7 @@ func startCommand() *cobra.Command {
 			// print start of session message
 			fmt.Println(color.GreenString("Starting ENVP session..."), color.RedString(profile))
 			color.Cyan(currentProfile.Env.String())
-			fmt.Println("> type 'exit' to close session")
+			fmt.Println("> press ctrl+d or type 'exit' to close session")
 
 			// set ENVP_PROFILE env var to leverage profile info in the prompt, such as starship.
 			os.Setenv(envpEnvVarKey, profile)
