@@ -3,6 +3,7 @@
 ![test](https://github.com/sunggun-yu/envp/actions/workflows/test.yaml/badge.svg)
 ![release](https://github.com/sunggun-yu/envp/actions/workflows/release.yaml/badge.svg)
 [![CodeQL](https://github.com/sunggun-yu/envp/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/sunggun-yu/envp/actions/workflows/codeql-analysis.yml)
+[![codecov](https://codecov.io/gh/sunggun-yu/envp/branch/main/graph/badge.svg?token=3V5SJ002BS)](https://codecov.io/gh/sunggun-yu/envp)
 
 ENVP is cli wrapper that sets environment variables by profile based configuration when you execute the command line.
 
