@@ -161,7 +161,7 @@ envp my-vault-1 -- vault login
 
 ### Start new shell session with your default `$SHELL`
 
-You can create new shell session with injected environment variable from your profile. It might be more useful for most of use case since you can seemlessly execute multiple of commands.
+You can create new shell session with injected environment variable from your profile. It might be more useful for most of use case since you can seemlessly execute multiple commands.
 
 ```bash
 # start new shell session with default profile
