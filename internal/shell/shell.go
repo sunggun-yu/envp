@@ -9,17 +9,19 @@ import (
 )
 
 // TODO: refactoring, cleanup
+// TODO: considering of using context
+// TODO: poc of using forkExec and handling sigs, norifying sigs via channel and so on.
 
 // ExecCmd execute command
-func Execute(cmd []string, env []config.Env) error {
+func Execute(cmd []string, env config.Envs) error {
 	return ExecCommand(cmd[0], cmd, env)
 }
 
 // StartShell runs default shell of user to create new shell session
-func StartShell(env []config.Env) error {
+func StartShell(env config.Envs) error {
 	sh := os.Getenv("SHELL")
 
-	if err := ExecCommand(sh, []string{sh}, env); err != nil {
+	if err := ExecCommand(sh, []string{sh, "-c", sh}, env); err != nil {
 		return err
 	}
 	return nil
@@ -27,7 +29,7 @@ func StartShell(env []config.Env) error {
 
 // TODO: make it private once evaluation between exec.Command and syscall.Exec done
 // ExecCommand executes the os/exec Command with environment variales injection
-func ExecCommand(argv0 string, argv []string, env []config.Env) error {
+func ExecCommand(argv0 string, argv []string, env config.Envs) error {
 	// first arg should be the command to execute
 	// check if command can be found in the PATH
 	binary, err := exec.LookPath(argv0)
@@ -46,6 +48,7 @@ func ExecCommand(argv0 string, argv []string, env []config.Env) error {
 	// inject environment variables of profile
 	setEnvs(env)
 	// set environment variables to command
+	// TODO: remove: passing env to cmd is not necessary in actually since setEnvs sets env vars to process
 	cmd.Env = os.Environ()
 
 	// run commmand
@@ -58,7 +61,7 @@ func ExecCommand(argv0 string, argv []string, env []config.Env) error {
 
 // TODO: make it private once evaluation between exec.Command and syscall.Exec done
 // execute the command with syscall
-func ExecuteWithSyscall(argv0 string, argv []string, env []config.Env) error {
+func ExecuteWithSyscall(argv0 string, argv []string, env config.Envs) error {
 	// first arg should be the command to execute
 	// check if command can be found in the PATH
 	binary, err := exec.LookPath(argv0)
@@ -78,7 +81,7 @@ func ExecuteWithSyscall(argv0 string, argv []string, env []config.Env) error {
 }
 
 // set env vars of profile to system
-func setEnvs(env []config.Env) {
+func setEnvs(env config.Envs) {
 	// inject environment variables of profile
 	for _, e := range env {
 		os.Setenv(e.Name, e.Value)

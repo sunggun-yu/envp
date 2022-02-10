@@ -11,7 +11,7 @@ type Config struct {
 	Profile string `mapstructure:"profile"` // profile config file path
 }
 
-// Profiles is struct of profiles
+// Profiles is map of profile
 type Profiles map[string]Profile
 
 // Profile is struct of profile
@@ -23,6 +23,7 @@ type Profile struct {
 	Env      Envs   `mapstructure:"env"`
 }
 
+// Envs is slice of Env
 type Envs []Env
 
 // Env represent environment variable name and value
@@ -37,6 +38,7 @@ func (e Env) String() string {
 	return fmt.Sprint(e.Name, "=", e.Value)
 }
 
+// Override strings() of Envs go generate comma separated string. this will be used for displaying env vars in list and start command.
 func (e Envs) String() string {
 	s := []string{}
 	for _, i := range e {
