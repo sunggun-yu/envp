@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/sunggun-yu/envp/internal/config"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -151,4 +152,64 @@ func TestDeleteProfile(t *testing.T) {
 	testCase("lab.cluster1")
 	testCase("org.nprod.argocd.argo2")
 	testCaseNonExistingProfile("non-existing-parent.non-existing-child")
+}
+
+// test SetProfile method
+func TestSetProfile(t *testing.T) {
+
+	profiles := testDataProfiles()
+
+	var testCaseNormal = func(n, d string) {
+		p := config.Profile{
+			Desc: d,
+		}
+		err := profiles.SetProfile(n, p)
+		if err != nil {
+			t.Errorf("It shouldn't be err: %v", err)
+		}
+
+		// after set
+		s, err := profiles.FindProfile(n)
+		if err != nil {
+			t.Errorf("Not updated: %v", err)
+		}
+
+		if s != nil && s.Desc != d {
+			t.Errorf("Not updated: %v", s)
+		}
+	}
+
+	// adding non-exising 1st level
+	testCaseNormal("something", "something")
+	// adding into non-exising nested profile
+	testCaseNormal("some.thing", "hello")
+	// adding into non-exising nested profile - deeper
+	testCaseNormal("how.about.this.deep.case.meow.meow.woof.woof", "meow")
+	{
+		// adding into existing nested profile
+		testCaseNormal("org.nprod.argocd.argo100", "argocd")
+		// sibling that was existing before appending should exist after
+		s, _ := profiles.FindProfile("org.nprod.argocd.argo2")
+		if s == nil {
+			t.Error("sibling is not exist after appending")
+		}
+	}
+	{
+		// overwriting existing profile
+		testCaseNormal("lab.cluster3", "updated lab.cluster3")
+		// sibling that was existing before appending should exist after
+		s, _ := profiles.FindProfile("lab.cluster2")
+		if s == nil {
+			t.Error("sibling is not exist after appending")
+		}
+	}
+
+	// just to check in human eye
+	out, _ := yaml.Marshal(profiles)
+	fmt.Println(string(out))
+
+	err := profiles.SetProfile("", *config.NewProfile())
+	if err == nil {
+		t.Errorf("It supposed to be error")
+	}
 }

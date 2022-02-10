@@ -14,9 +14,15 @@ type Profiles map[string]*Profile
 type Profile struct {
 	// set it with mapstructure remain to unmashal config file item `profiles` as Profile
 	// yaml inline fixed the nested profiles issue
-	Profiles `mapstructure:",remain" yaml:",inline"`
-	Desc     string `mapstructure:"desc" yaml:"desc"`
-	Env      Envs   `mapstructure:"env" yaml:"env"`
+	Profiles Profiles `mapstructure:",remain" yaml:",inline"`
+	Desc     string   `mapstructure:"desc" yaml:"desc"`
+	Env      Envs     `mapstructure:"env" yaml:"env"`
+}
+
+func NewProfile() *Profile {
+	return &Profile{
+		Profiles: Profiles{},
+	}
 }
 
 // Envs is slice of Env
@@ -42,6 +48,44 @@ func (e Envs) String() string {
 	}
 	r := strings.Join(s, ",")
 	return r
+}
+
+// SetProfile sets profile into the Profiles
+// key is dot "." delimetered or plain string without no space.
+// if it is dot delimeterd, considering it as nested profile
+func (p *Profiles) SetProfile(key string, profile Profile) error {
+	if key == "" {
+		return fmt.Errorf("empty profile name")
+	}
+	keys := strings.Split(key, ".")
+	if len(keys) == 1 {
+		(*p)[keys[0]] = &profile
+		return nil
+	}
+
+	// in case it's nested profile
+	// build/get nested parents
+	var parent *Profile
+	// loop until last parent
+	for _, k := range keys[:len(keys)-1] {
+		if parent == nil {
+			if (*p)[k] != nil {
+				parent = (*p)[k]
+			} else {
+				parent = NewProfile()
+				(*p)[k] = parent
+			}
+			continue
+		}
+		if parent.Profiles[k] == nil {
+			parent.Profiles[k] = NewProfile()
+		}
+		parent = parent.Profiles[k]
+	}
+	// add last profile into last parent
+	pname := keys[len(keys)-1]
+	parent.Profiles[pname] = &profile
+	return nil
 }
 
 // FindProfile finds profile from dot notation of profile name such as "a.b.c"

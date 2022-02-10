@@ -55,9 +55,9 @@ profiles:
           desc: org.nprod.vpn.vpn1
           env:
           - name: HTTPS_PROXY
-            value: http://192.168.2.7:9228
+            value: http://192.168.2.10:3128
         vpn2:
           desc: org.nprod.vpn.vpn2
           env:
           - name: HTTPS_PROXY
-            value: http://192.168.2.7:9128
+            value: http://192.168.2.11:3128
