@@ -66,19 +66,18 @@ func ParseEnvFlagToMap(envs []string) map[string]string {
 			r[ev[0]] = ev[1]
 		}
 	}
-
 	return r
 }
 
 // ParseEnvFlagToEnv parse slice of string "var=val" to []ENV
-func ParseEnvFlagToEnv(envs []string) []Env {
-	if len(envs) == 0 {
+func ParseEnvFlagToEnv(args []string) Envs {
+	if len(args) == 0 {
 		return nil
 	}
 
 	r := []Env{}
 
-	for _, s := range envs {
+	for _, s := range args {
 		ev := strings.Split(s, "=")
 		if len(ev) != 2 {
 			// TODO: handle unexpected format
@@ -95,7 +94,7 @@ func ParseEnvFlagToEnv(envs []string) []Env {
 }
 
 // MapToEnv parse string map to slice of Env
-func MapToEnv(m map[string]string) []Env {
+func MapToEnv(m map[string]string) Envs {
 	r := []Env{}
 	for k, v := range m {
 		r = append(r, Env{
