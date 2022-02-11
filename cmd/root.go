@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
@@ -19,9 +18,8 @@ const (
 )
 
 var (
-	configProfiles *viper.Viper
-	profileList    []string
-	rootCmd        = rootCommand()
+	Config  config.Config
+	rootCmd = rootCommand()
 )
 
 // Execute execute the root command and sub commands
@@ -51,12 +49,6 @@ func cmdExampleRoot() string {
 
 // rootCommand sets environment variable and execute command line
 func rootCommand() *cobra.Command {
-	// profile name from flag or config section "use"
-	var profile string
-	var command []string
-
-	// unmarshalled object from selected profile in the config file
-	var currentProfile config.Profile
 
 	cmd := &cobra.Command{
 		Use:               "envp profile-name [flags] -- [command line to execute, e.g. kubectl]",
@@ -79,47 +71,31 @@ func rootCommand() *cobra.Command {
 				return nil
 			},
 		),
-		// profile validation will be performed
-		// global var for profile will be unmarshalled
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			var profile *config.Profile
+			var command []string
+			var err error
+
 			/*
 				envp -- command         : ArgsLenAtDash == 0
 				envp profile -- command : ArgsLenAtDash == 1
 			*/
 			switch {
 			case cmd.ArgsLenAtDash() == 0:
-				// this case requires default profile.
-				if viper.GetString(ConfigKeyDefaultProfile) == "" {
-					printExample(cmd)
-					return fmt.Errorf("default profile is not set. please set default profile")
-				}
-
-				profile = viper.GetString(ConfigKeyDefaultProfile)
+				profile, err = Config.DefaultProfile()
 				command = args
 			case cmd.ArgsLenAtDash() == 1:
-				profile = args[0]
+				profile, err = Config.Profiles.FindProfile(args[0])
 				command = args[1:]
 			}
-
-			// check if selected profile is existing
-			if configProfiles.Sub(profile) == nil {
-				return fmt.Errorf("profile '%v' is not existing", profile)
-			}
-
-			// validate if selected profile is existing in the config
-			selected := configProfiles.Sub(profile)
-			// unmarshal to Profile
-			err := selected.Unmarshal(&currentProfile)
 			if err != nil {
-				return fmt.Errorf("profile '%v' malformed configuration %e", profile, err)
+				checkErrorAndPrintCommandExample(cmd, err)
+				return err
 			}
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
 
 			// Execute command
-			if err := shell.Execute(command, currentProfile.Env); err != nil {
+			if err := shell.Execute(command, profile.Env); err != nil {
 				return err
 			}
 			return nil
@@ -185,24 +161,11 @@ func configPath(base string) string {
 	return path
 }
 
-// print example only
-func printExample(cmd *cobra.Command) {
-	fmt.Println("Example:")
-	fmt.Println(cmd.Example)
-}
-
-// TODO: refactoring
-// init profiles and profile list
+// unmarshal config.Config
 func initProfiles() {
-	// reload profiles
-	configProfiles = viper.Sub(ConfigKeyProfile)
-	// unmarshal config item "profiles" to Profiles
-	var root config.Profiles
-	err := configProfiles.Unmarshal(&root)
+	err := viper.Unmarshal(&Config)
 	if err != nil {
-		return
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	// generate profile list
-	profileList = *listProfileKeys("", root, &[]string{})
-	sort.Strings(profileList)
 }

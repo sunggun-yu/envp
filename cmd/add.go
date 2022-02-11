@@ -48,50 +48,49 @@ func addCommand() *cobra.Command {
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			profileName := args[0]
+			name := args[0]
 			profile := config.Profile{
 				Desc: flags.desc,
 				Env:  []config.Env{},
 			}
 			profile.Env = config.ParseEnvFlagToEnv(flags.env)
 
-			// set profile as default profile if default is empty and no profile is exsiting
-			if len(configProfiles.AllKeys()) == 0 {
-				viper.Set(ConfigKeyDefaultProfile, profileName)
-			}
 			// set profile
-			configProfiles.Set(profileName, profile)
+			Config.Profiles.SetProfile(name, profile)
 
-			// overwrite the entire profiles
-			viper.Set(ConfigKeyProfile, configProfiles.AllSettings())
+			// set profile as default profile if default is empty and no profile is exsiting
+			if Config.Default == "" {
+				Config.Default = name
+			}
 
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
 			// it's being watched in root initConfig - viper.WatchConfig()
-			viper.OnConfigChange(func(e fsnotify.Event) {
-				// assuming
-				if configProfiles.Get(profileName) == nil {
-					rc <- fmt.Errorf("profile %v not added", profileName)
+			go viper.OnConfigChange(func(e fsnotify.Event) {
+				if p, _ := Config.Profiles.FindProfile(name); p == nil {
+					rc <- fmt.Errorf("profile %v not added", name)
 					return
 				}
-				fmt.Println("profile", profileName, "added successfully:", e.Name)
+				fmt.Println("Profile", name, "added successfully:", e.Name)
 				rc <- nil
 			})
 
-			if err := viper.WriteConfig(); err != nil {
+			// update config and save
+			if err := updateAndSaveConfigFile(&Config, viper.GetViper()); err != nil {
 				return err
 			}
+
 			// wait for profile validation channel
-			err := <-rc
-			if err != nil {
-				return err
+			errOnChange := <-rc
+			if errOnChange != nil {
+				return errOnChange
 			}
 			return nil
 		},
 	}
 
 	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of profile")
-	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "'VAR=VAL' format of string")
+	cmd.Flags().StringArrayVarP(&flags.env, "env", "e", []string{}, "'VAR=VAL' format of string")
 	cmd.MarkFlagRequired("env")
 	return cmd
 }

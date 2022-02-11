@@ -44,15 +44,10 @@ func editCommand() *cobra.Command {
 		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			profileName := args[0]
-			var profile config.Profile
-
-			// validate selected profile
-			selected := configProfiles.Sub(profileName)
-			// unmarshal into Profile
-			err := selected.Unmarshal(&profile)
+			name, profile, _, err := CurrentProfile(args)
 			if err != nil {
-				return fmt.Errorf("profile '%v' malformed configuration %e", profile, err)
+				checkErrorAndPrintCommandExample(cmd, err)
+				return err
 			}
 
 			// update desc if input is not empty
@@ -73,40 +68,38 @@ func editCommand() *cobra.Command {
 				profile.Env = config.MapToEnv(menv)
 			}
 
-			// set updated profile
-			configProfiles.Set(profileName, profile)
-
-			// overwrite the profile
-			viper.Set(ConfigKeyProfile, configProfiles.AllSettings())
+			// set updated profile. not necessary
+			Config.Profiles.SetProfile(name, *profile)
 
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
 
 			// it's being watched in root initConfig - viper.WatchConfig()
-			viper.OnConfigChange(func(e fsnotify.Event) {
-				// assuming
-				if configProfiles.Get(profileName) == nil {
-					rc <- fmt.Errorf("profile %v not added", profileName)
+			go viper.OnConfigChange(func(e fsnotify.Event) {
+				if p, _ := Config.Profiles.FindProfile(name); p == nil {
+					rc <- fmt.Errorf("profile %v not updated", name)
 					return
 				}
-				fmt.Println("profile", profileName, "updated successfully:", e.Name)
+				fmt.Println("Profile", name, "updated successfully:", e.Name)
 				rc <- nil
 			})
 
-			if err := viper.WriteConfig(); err != nil {
+			// update config and save
+			if err := updateAndSaveConfigFile(&Config, viper.GetViper()); err != nil {
 				return err
 			}
+
 			// wait for profile validation channel
-			err = <-rc
-			if err != nil {
-				return err
+			errOnChange := <-rc
+			if errOnChange != nil {
+				return errOnChange
 			}
 			return nil
 		},
 	}
 
 	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of profile")
-	cmd.Flags().StringSliceVarP(&flags.env, "env", "e", []string{}, "'VAR=VAL' format of string")
+	cmd.Flags().StringArrayVarP(&flags.env, "env", "e", []string{}, "'VAR=VAL' format of string")
 	cmd.MarkFlagRequired("env")
 
 	return cmd

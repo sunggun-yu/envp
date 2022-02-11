@@ -15,8 +15,8 @@ type Profile struct {
 	// set it with mapstructure remain to unmashal config file item `profiles` as Profile
 	// yaml inline fixed the nested profiles issue
 	Profiles Profiles `mapstructure:",remain" yaml:",inline"`
-	Desc     string   `mapstructure:"desc" yaml:"desc"`
-	Env      Envs     `mapstructure:"env" yaml:"env"`
+	Desc     string   `mapstructure:"desc" yaml:"desc,omitempty"`
+	Env      Envs     `mapstructure:"env" yaml:"env,omitempty"`
 }
 
 func NewProfile() *Profile {
@@ -33,6 +33,36 @@ type Envs []Env
 type Env struct {
 	Name  string `mapstructure:"name" yaml:"name"`
 	Value string `mapstructure:"value" yaml:"value"`
+}
+
+// ProfileNotExistingError is an error when expected profile is not existing
+type ProfileNotExistingError struct {
+	profile string
+}
+
+// NewProfileNotExistingError create new ProfileNotExistingError
+func NewProfileNotExistingError(profile string) *ProfileNotExistingError {
+	return &ProfileNotExistingError{
+		profile: profile,
+	}
+}
+
+// Error is to make ProfileNotExistingError errors
+func (e *ProfileNotExistingError) Error() string {
+	return fmt.Sprintf("profile %s is not exising", e.profile)
+}
+
+// ProfileNameInputEmptyError is an error when mandatory profile input is empty
+type ProfileNameInputEmptyError struct{}
+
+// Error is to make ProfileNotExistingError errors
+func (e *ProfileNameInputEmptyError) Error() string {
+	return "input profile name is empty"
+}
+
+// NewProfileNameInputEmptyError create new ProfileNameInputEmptyError
+func NewProfileNameInputEmptyError() *ProfileNameInputEmptyError {
+	return &ProfileNameInputEmptyError{}
 }
 
 // Override String() to make it KEY=VAL format
@@ -55,7 +85,7 @@ func (e Envs) String() string {
 // if it is dot delimeterd, considering it as nested profile
 func (p *Profiles) SetProfile(key string, profile Profile) error {
 	if key == "" {
-		return fmt.Errorf("empty profile name")
+		return NewProfileNameInputEmptyError()
 	}
 	keys := strings.Split(key, ".")
 	if len(keys) == 1 {
@@ -90,10 +120,13 @@ func (p *Profiles) SetProfile(key string, profile Profile) error {
 
 // FindProfile finds profile from dot notation of profile name such as "a.b.c"
 func (p *Profiles) FindProfile(key string) (*Profile, error) {
+	if key == "" {
+		return nil, NewProfileNameInputEmptyError()
+	}
 	keys := strings.Split(key, ".")
 	result := findProfileByDotNotationKey(keys, p)
 	if result == nil {
-		return nil, fmt.Errorf("profile %v is not exising", key)
+		return nil, NewProfileNotExistingError(key)
 	}
 	return result, nil
 }
@@ -122,6 +155,9 @@ func (p *Profiles) ProfileNames() []string {
 
 // DeleteProfile delete profile
 func (p *Profiles) DeleteProfile(key string) error {
+	if key == "" {
+		return NewProfileNameInputEmptyError()
+	}
 
 	keys := strings.Split(key, ".")
 
@@ -139,7 +175,7 @@ func (p *Profiles) DeleteProfile(key string) error {
 		pp, err := p.FindParentProfile(key)
 		if err != nil {
 			// no parent means profile is not existing
-			return fmt.Errorf("profile %v is not existing", key)
+			return NewProfileNotExistingError(key)
 		}
 		parent = pp.Profiles
 	}

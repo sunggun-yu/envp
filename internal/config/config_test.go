@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"reflect"
 	"testing"
@@ -111,5 +112,45 @@ func TestMapToEnv(t *testing.T) {
 	actual := config.MapToEnv(testData)
 	if !reflect.DeepEqual(expected, actual) {
 		t.Error("Not meet expectation", expected, "-", actual)
+	}
+}
+
+func TestDefaultProfile(t *testing.T) {
+	cfg := testDataConfig()
+	if p, err := cfg.DefaultProfile(); err != nil {
+		t.Error("Should not be nil")
+	} else {
+		fmt.Println(p)
+	}
+	// make default empty
+	cfg.Default = ""
+	if _, err := cfg.DefaultProfile(); err == nil {
+		t.Error("Should be error")
+	} else {
+		fmt.Println(err)
+	}
+}
+
+func TestProfile(t *testing.T) {
+	cfg := testDataConfig()
+
+	if p, err := cfg.Profile(""); err != nil {
+		t.Error("Should not be nil.")
+	} else if p.Desc != "docker" {
+		t.Error("Should not be same as default profile")
+	}
+
+	if p, err := cfg.Profile("docker"); err != nil {
+		t.Error("Should not be nil.")
+	} else if p == nil {
+		t.Error("Should not be nil.")
+	}
+
+	// make default empty and find profile that is not existing
+	cfg.Default = ""
+	if _, err := cfg.Profile("not-existing-profile"); err == nil {
+		t.Error("Should be error")
+	} else {
+		fmt.Println(err)
 	}
 }

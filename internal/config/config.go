@@ -11,6 +11,46 @@ type Config struct {
 	Profiles *Profiles `mapstructure:"profiles" yaml:"profiles"`
 }
 
+type DefaultProfileNotSetError struct{}
+
+// NewProfileNotExistingError create new error
+func NewDefaultProfileNotSetError() *DefaultProfileNotSetError {
+	return &DefaultProfileNotSetError{}
+}
+
+// Error is to make ProfileNotExistingError errors
+func (e *DefaultProfileNotSetError) Error() string {
+	return "default profile is not set"
+}
+
+func (c *Config) DefaultProfile() (*Profile, error) {
+	if c.Default == "" {
+		return nil, NewDefaultProfileNotSetError()
+	}
+	return c.Profiles.FindProfile(c.Default)
+}
+
+// Profile find and return Profile from name
+// if name is empty it returns default Profile from Profiles
+// otherwise speicified Profile will be return
+// error will be return when default is not set or profile is not existing
+func (c *Config) Profile(name string) (*Profile, error) {
+
+	var profile *Profile
+	var err error
+
+	switch {
+	case name != "":
+		profile, err = c.Profiles.FindProfile(name)
+	default:
+		profile, err = c.DefaultProfile()
+	}
+	if err != nil {
+		return nil, err
+	}
+	return profile, nil
+}
+
 // ParseEnvFlagToMap parse string format "env=val" to map "env: val". it can be used fo dup check from slice of Env
 func ParseEnvFlagToMap(envs []string) map[string]string {
 

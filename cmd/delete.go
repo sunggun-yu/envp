@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,26 +24,26 @@ func cmdExampleDelete() string {
 // deleteCommand delete/remove environment variable profile and it's envionment variables from the config file
 func deleteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "delete profile-name",
-		Short:        "Delete environment variable profile",
-		Aliases:      []string{"del"},
-		SilenceUsage: true,
-		Example:      cmdExampleDelete(),
-		Args: cobra.MatchAll(
-			Arg0AsProfileName(),
-			Arg0NotExistingProfile(),
-		),
+		Use:               "delete profile-name",
+		Short:             "Delete environment variable profile",
+		Aliases:           []string{"del"},
+		SilenceUsage:      true,
+		Example:           cmdExampleDelete(),
 		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			p := args[0]
 
-			// use built-in function to delete key(profile) from map (profiles)
-			delete(viper.Get(ConfigKeyProfile).(map[string]interface{}), p)
+			name, _, isDefault, err := CurrentProfile(args)
+			if err != nil {
+				checkErrorAndPrintCommandExample(cmd, err)
+				return err
+			}
+			// delete profile
+			Config.Profiles.DeleteProfile(name)
 
 			// set default="" if default profile is being deleted
-			if p == viper.GetString(ConfigKeyDefaultProfile) {
-				viper.Set(ConfigKeyDefaultProfile, "")
-				fmt.Println("WARN: Deleting default profile. please set default profile once it is deleted")
+			if isDefault {
+				Config.Default = ""
+				color.Yellow("WARN: Deleting default profile '%s'. please set default profile once it is deleted", name)
 			}
 
 			// wait for the config file update and verify profile is added or not
@@ -50,22 +51,23 @@ func deleteCommand() *cobra.Command {
 			// I think underlying of viper.OnConfiChange is goroutine. but just run it as goroutine just in case
 			// it's being watched in root initConfig - viper.WatchConfig()
 			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if configProfiles.Get(p) != nil {
-					rc <- fmt.Errorf("profile %v not deleted", p)
+				if p, _ := Config.Profiles.FindProfile(name); p != nil {
+					rc <- fmt.Errorf("profile %v not deleted", name)
 					return
 				}
-				fmt.Println("Profile", p, "deleted successfully:", e.Name)
+				fmt.Println("Profile", name, "deleted successfully:", e.Name)
 				rc <- nil
 			})
 
-			if err := viper.WriteConfig(); err != nil {
+			// update config and save
+			if err := updateAndSaveConfigFile(&Config, viper.GetViper()); err != nil {
 				return err
 			}
 
 			// wait for profile validation channel
-			err := <-rc
-			if err != nil {
-				return err
+			errOnChange := <-rc
+			if errOnChange != nil {
+				return errOnChange
 			}
 			return nil
 		},

@@ -137,6 +137,14 @@ func TestDeleteProfile(t *testing.T) {
 				t.Error("Parent should not be nil after deleting")
 			}
 		}
+
+		// error case
+		err := profile.DeleteProfile("")
+		if err == nil {
+			t.Error("deleting empty string profile name should be error")
+		} else if err.Error() == "" {
+			t.Error("should return some error message")
+		}
 	}
 
 	var testCaseNonExistingProfile = func(key string) {

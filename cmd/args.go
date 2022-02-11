@@ -8,9 +8,9 @@ import (
 
 func Arg0NotExistingProfile() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		selected := configProfiles.Sub(args[0])
-		if selected == nil {
-			return fmt.Errorf("%v is not existing in the profile list", args[0])
+		_, err := Config.Profiles.FindProfile(args[0])
+		if err != nil {
+			return err
 		}
 		return nil
 	}
@@ -18,12 +18,12 @@ func Arg0NotExistingProfile() cobra.PositionalArgs {
 
 func Arg0ExistingProfile() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		profiles := configProfiles
-		if profiles == nil || len(profiles.AllKeys()) == 0 {
-			return nil
-		}
-		selected := profiles.Sub(args[0])
-		if selected != nil {
+		//TODO: what was this? lol
+		// profiles := configProfiles
+		// if profiles == nil || len(profiles.AllKeys()) == 0 {
+		// 	return nil
+		// }
+		if p, _ := Config.Profiles.FindProfile(args[0]); p != nil {
 			return fmt.Errorf("%v is existing already", args[0])
 		}
 		return nil
@@ -42,9 +42,10 @@ func Arg0AsProfileName() cobra.PositionalArgs {
 	}
 }
 
+// ValidArgsProfileList is for auto complete
 var ValidArgsProfileList = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return profileList, cobra.ShellCompDirectiveNoFileComp
+	return Config.Profiles.ProfileNames(), cobra.ShellCompDirectiveNoFileComp
 }

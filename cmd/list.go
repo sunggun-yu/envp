@@ -6,7 +6,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/sunggun-yu/envp/internal/config"
 )
 
 func init() {
@@ -34,7 +33,7 @@ func listCommand() *cobra.Command {
 			// current default profile name to compare
 			defaultProfile := viper.GetString(ConfigKeyDefaultProfile)
 			// print profiles. mark default profile with *
-			for _, p := range profileList {
+			for _, p := range Config.Profiles.ProfileNames() {
 				if p == defaultProfile {
 					color.Green("* %s", p)
 				} else {
@@ -45,25 +44,4 @@ func listCommand() *cobra.Command {
 		},
 	}
 	return cmd
-}
-
-// list all the profiles in dot "." format. e.g. mygroup.my-subgroup.my-profile
-// Do DFS to build viper keys for profiles
-func listProfileKeys(key string, profiles config.Profiles, arr *[]string) *[]string {
-	for k, v := range profiles {
-		var s string
-		if key == "" {
-			s = k
-		} else {
-			s = fmt.Sprint(key, ".", k)
-		}
-		// only Profile item has env items will be considered as profile
-		// even group(parent Profile that has children Profiles) will be considered as Profile if it has env items.
-		if len(v.Env) > 0 {
-			*arr = append(*arr, s)
-		}
-		// recursion
-		listProfileKeys(s, v.Profiles, arr)
-	}
-	return arr
 }

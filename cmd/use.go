@@ -2,7 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/fatih/color"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -25,22 +28,49 @@ func cmdExampleUse() string {
 // add command
 func useCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "use profile-name",
-		Short:        "Set default environment variable profile",
-		SilenceUsage: true,
-		Example:      cmdExampleUse(),
-		Args: cobra.MatchAll(
-			Arg0AsProfileName(),
-			Arg0NotExistingProfile(),
-		),
+		Use:               "use profile-name",
+		Short:             "Set default environment variable profile",
+		SilenceUsage:      true,
+		Example:           cmdExampleUse(),
 		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			p := args[0]
-			viper.Set(ConfigKeyDefaultProfile, p)
-			if err := viper.WriteConfig(); err != nil {
-				return fmt.Errorf("failed to updating the config file: %v", err.Error())
+			name, _, isDefault, err := CurrentProfile(args)
+			if err != nil {
+				checkErrorAndPrintCommandExample(cmd, err)
+				return err
 			}
-			fmt.Println("Default profile is set to", viper.GetString(ConfigKeyDefaultProfile))
+			// just exit if selected profile is already default
+			if isDefault {
+				fmt.Println("Profile", name, "is alreday set as default")
+				os.Exit(0)
+			}
+
+			// set selected profile as default
+			Config.Default = name
+
+			// wait for the config file update and verify profile is added or not
+			rc := make(chan error, 1)
+
+			// it's being watched in root initConfig - viper.WatchConfig()
+			go viper.OnConfigChange(func(e fsnotify.Event) {
+				if Config.Default != name {
+					rc <- fmt.Errorf("default profile is not updated")
+					return
+				}
+				fmt.Println("Default profile is set to", color.GreenString(Config.Default))
+				rc <- nil
+			})
+
+			// update config and save
+			if err := updateAndSaveConfigFile(&Config, viper.GetViper()); err != nil {
+				return err
+			}
+
+			// wait for profile validation channel
+			errOnChange := <-rc
+			if errOnChange != nil {
+				return errOnChange
+			}
 			return nil
 		},
 	}

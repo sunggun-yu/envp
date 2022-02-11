@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/sunggun-yu/envp/internal/config"
 )
 
 // flags struct for show command
@@ -29,8 +27,8 @@ func cmdExampleShow() string {
 
 // showCommand prints out all the environment variables of profile
 func showCommand() *cobra.Command {
+
 	var flags showFlags
-	var profileName string
 
 	cmd := &cobra.Command{
 		Use:               "show profile-name [flags]",
@@ -40,25 +38,13 @@ func showCommand() *cobra.Command {
 		Example:           cmdExampleShow(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			if len(args) == 0 {
-				profileName = viper.GetString(ConfigKeyDefaultProfile)
-			} else {
-				profileName = args[0]
-			}
-
-			var profile config.Profile
-			// validate selected profile
-			selected := configProfiles.Sub(profileName)
-			if selected == nil {
-				return fmt.Errorf("profile %v is not existing", profileName)
-			}
-
-			// unmarshal into Profile
-			err := selected.Unmarshal(&profile)
+			name, profile, _, err := CurrentProfile(args)
 			if err != nil {
-				return fmt.Errorf("profile '%v' malformed configuration %e", profile, err)
+				checkErrorAndPrintCommandExample(cmd, err)
+				return err
 			}
 
+			fmt.Println("# profile:", name)
 			if flags.export {
 				fmt.Println("# you can export env vars of profile with following command")
 				fmt.Println("# eval $(envp show --export)")

@@ -6,8 +6,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/sunggun-yu/envp/internal/config"
 	"github.com/sunggun-yu/envp/internal/shell"
 )
 
@@ -30,9 +28,6 @@ func cmdExampleStart() string {
 
 // deleteCommand delete/remove environment variable profile and it's envionment variables from the config file
 func startCommand() *cobra.Command {
-	var profile string
-	// unmarshalled object from selected profile in the config file
-	var currentProfile config.Profile
 
 	cmd := &cobra.Command{
 		Use:               "start profile-name",
@@ -40,45 +35,27 @@ func startCommand() *cobra.Command {
 		SilenceUsage:      true,
 		Example:           cmdExampleStart(),
 		ValidArgsFunction: ValidArgsProfileList,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: refactoring, cleanup
-			switch {
-			case len(args) == 0:
-				// this case requires default profile.
-				if viper.GetString(ConfigKeyDefaultProfile) == "" {
-					printExample(cmd)
-					return fmt.Errorf("default profile is not set. please set default profile")
-				}
-				profile = viper.GetString(ConfigKeyDefaultProfile)
-			case len(args) > 0:
-				profile = args[0]
-			}
-			// validate if selected profile is existing in the config
-			selected := configProfiles.Sub(profile)
-			// unmarshal to Profile
-			err := selected.Unmarshal(&currentProfile)
-			if err != nil {
-				return fmt.Errorf("profile '%v' malformed configuration %e", profile, err)
-			}
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// TODO: refactoring, cleanup
+			name, profile, _, err := CurrentProfile(args)
+			if err != nil {
+				checkErrorAndPrintCommandExample(cmd, err)
+				return err
+			}
 
 			// print start of session message
-			fmt.Println(color.GreenString("Starting ENVP session..."), color.RedString(profile))
-			color.Cyan(currentProfile.Env.String())
+			fmt.Println(color.GreenString("Starting ENVP session..."), color.RedString(name))
+			color.Cyan(profile.Env.String())
 			fmt.Println("> press ctrl+d or type 'exit' to close session")
 
 			// set ENVP_PROFILE env var to leverage profile info in the prompt, such as starship.
-			os.Setenv(envpEnvVarKey, profile)
+			os.Setenv(envpEnvVarKey, name)
 
 			// ignore error message from shell. let shell print out the errors
-			shell.StartShell(currentProfile.Env)
+			shell.StartShell(profile.Env)
 
 			// print end of session message
-			fmt.Println(color.GreenString("ENVP session closed..."), color.RedString(profile))
+			fmt.Println(color.GreenString("ENVP session closed..."), color.RedString(name))
 			return nil
 		},
 	}
