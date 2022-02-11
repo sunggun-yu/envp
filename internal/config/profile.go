@@ -19,6 +19,7 @@ type Profile struct {
 	Env      Envs     `mapstructure:"env" yaml:"env,omitempty"`
 }
 
+// NewProfile creates the Profile
 func NewProfile() *Profile {
 	return &Profile{
 		Profiles: Profiles{},
@@ -49,7 +50,7 @@ func NewProfileNotExistingError(profile string) *ProfileNotExistingError {
 
 // Error is to make ProfileNotExistingError errors
 func (e *ProfileNotExistingError) Error() string {
-	return fmt.Sprintf("profile %s is not exising", e.profile)
+	return fmt.Sprintf("profile %s is not existing", e.profile)
 }
 
 // ProfileNameInputEmptyError is an error when mandatory profile input is empty

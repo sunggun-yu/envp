@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// make it public to set version from main.go
+// Version is version of envp. make it public to set version from main.go
 var Version string
 
 func init() {

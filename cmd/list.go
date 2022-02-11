@@ -5,7 +5,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func init() {
@@ -30,11 +29,10 @@ func listCommand() *cobra.Command {
 		Example:      cmdExampleList(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// current default profile name to compare
-			defaultProfile := viper.GetString(ConfigKeyDefaultProfile)
-			// print profiles. mark default profile with *
+			// print profiles.
 			for _, p := range Config.Profiles.ProfileNames() {
-				if p == defaultProfile {
+				if p == Config.Default {
+					// mark default profile with * and green
 					color.Green("* %s", p)
 				} else {
 					fmt.Println(" ", p)

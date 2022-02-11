@@ -12,12 +12,8 @@ import (
 	"github.com/sunggun-yu/envp/internal/shell"
 )
 
-const (
-	ConfigKeyDefaultProfile = "default"
-	ConfigKeyProfile        = "profiles" // viper sub section key for profile
-)
-
 var (
+	// Config is global var that represents all the configs from config file. it marshalled at init
 	Config  config.Config
 	rootCmd = rootCommand()
 )

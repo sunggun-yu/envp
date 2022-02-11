@@ -5,15 +5,16 @@ import (
 	"strings"
 )
 
-// cli config that includes profile config file path
+// Config is struct that represents configuration of config file
 type Config struct {
 	Default  string    `mapstructure:"default" yaml:"default"`
 	Profiles *Profiles `mapstructure:"profiles" yaml:"profiles"`
 }
 
+// DefaultProfileNotSetError is error when default profile is not set
 type DefaultProfileNotSetError struct{}
 
-// NewProfileNotExistingError create new error
+// NewDefaultProfileNotSetError create new DefaultProfileNotSetError
 func NewDefaultProfileNotSetError() *DefaultProfileNotSetError {
 	return &DefaultProfileNotSetError{}
 }
@@ -23,6 +24,7 @@ func (e *DefaultProfileNotSetError) Error() string {
 	return "default profile is not set"
 }
 
+// DefaultProfile returns default profile of config. it returns DefaultProfileNotSetError when default file is not set
 func (c *Config) DefaultProfile() (*Profile, error) {
 	if c.Default == "" {
 		return nil, NewDefaultProfileNotSetError()

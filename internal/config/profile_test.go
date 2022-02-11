@@ -112,12 +112,12 @@ func TestFindParentProfile(t *testing.T) {
 
 	t.Run("find exisiting parent of non-existing child profile", func(t *testing.T) {
 		// should return parent even child is not exisiting
-		testCaseNormal("lab.cluster-not-exising-in-config", "lab")
+		testCaseNormal("lab.cluster-not-existing-in-config", "lab")
 	})
 
 	t.Run("find parent of non-existing profile", func(t *testing.T) {
 		// should return nil for non existing profile
-		if p, err := profiles.FindParentProfile("non-exising-profile"); p != nil && err != nil {
+		if p, err := profiles.FindParentProfile("non-existing-profile"); p != nil && err != nil {
 			t.Error("supposed to be nill and no err")
 		}
 	})
@@ -210,18 +210,18 @@ func TestSetProfile(t *testing.T) {
 		}
 	}
 
-	// adding non-exising 1st level
-	t.Run("adding non-exising 1st level", func(t *testing.T) {
+	// adding non-existing 1st level
+	t.Run("adding non-existing 1st level", func(t *testing.T) {
 		testCaseNormal("something", "something")
 	})
 
-	// adding into non-exising nested profile
-	t.Run("adding into non-exising nested profile", func(t *testing.T) {
+	// adding into non-existing nested profile
+	t.Run("adding into non-existing nested profile", func(t *testing.T) {
 		testCaseNormal("some.thing", "hello")
 	})
 
-	// adding into non-exising nested profile - deeper
-	t.Run("adding into non-exising nested profile - deeper", func(t *testing.T) {
+	// adding into non-existing nested profile - deeper
+	t.Run("adding into non-existing nested profile - deeper", func(t *testing.T) {
 		testCaseNormal("how.about.this.deep.case.meow.meow.woof.woof", "meow")
 	})
 
