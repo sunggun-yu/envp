@@ -8,6 +8,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/sunggun-yu/envp)](https://goreportcard.com/report/github.com/sunggun-yu/envp)
 [![codecov](https://codecov.io/gh/sunggun-yu/envp/branch/main/graph/badge.svg?token=3V5SJ002BS)](https://codecov.io/gh/sunggun-yu/envp)
 
+[![asciicast](https://asciinema.org/a/0O8lhITLCMtriFD7FhQI70YNY.svg)](https://asciinema.org/a/0O8lhITLCMtriFD7FhQI70YNY)
+
 ENVP is cli wrapper that sets environment variables by profile based configuration when you execute the command line.
 
 ## Use Cases I want to solve
