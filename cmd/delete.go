@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/sunggun-yu/envp/internal/prompt"
 )
 
 func init() {
@@ -37,13 +39,19 @@ func deleteCommand() *cobra.Command {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
 			}
-			// delete profile
-			Config.Profiles.DeleteProfile(name)
 
 			// set default="" if default profile is being deleted
 			if isDefault {
 				Config.Default = ""
-				color.Yellow("WARN: Deleting default profile '%s'. please set default profile once it is deleted", name)
+				color.Yellow("WARN: You are deleting default profile '%s'. please set default profile once it is deleted", name)
+			}
+			// ask y/n decision before proceed delete
+			if prompt.PromptConfirm(fmt.Sprintf("Delete profile %s", color.RedString(name))) {
+				// delete profile
+				Config.Profiles.DeleteProfile(name)
+			} else {
+				fmt.Println("Cancelled")
+				os.Exit(0)
 			}
 
 			// wait for the config file update and verify profile is added or not
