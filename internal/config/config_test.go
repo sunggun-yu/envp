@@ -162,7 +162,7 @@ func TestProfile(t *testing.T) {
 		}
 	})
 
-	t.Run("wehn set non-existing profile", func(t *testing.T) {
+	t.Run("when set non-existing profile", func(t *testing.T) {
 		// make default empty and find profile that is not existing
 		cfg.Default = ""
 		if _, err := cfg.Profile("not-existing-profile"); err == nil {

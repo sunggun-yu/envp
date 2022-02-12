@@ -10,7 +10,7 @@ import (
 type Profiles map[string]*Profile
 
 // Profile is struct of profile
-// TODO: linked list might be better. but unmarshal may not support. so need to rebuild structure after reading the config.
+// TODO: linked list might be better. but unmarshal may not be supported(need test). rebuilding structure after reading the config may required.
 type Profile struct {
 	// set it with mapstructure remain to unmashal config file item `profiles` as Profile
 	// yaml inline fixed the nested profiles issue
