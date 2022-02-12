@@ -12,6 +12,7 @@ import (
 func TestPromptConfirm(t *testing.T) {
 
 	var testCase = func(input string) bool {
+
 		// PromptUI need
 		s := fmt.Sprintf("%s\n", input)
 		stringReader := strings.NewReader(s)

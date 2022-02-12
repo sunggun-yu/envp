@@ -2,6 +2,7 @@ package prompt
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/manifoldco/promptui"
 )
@@ -9,11 +10,16 @@ import (
 // PromptYesOrNo prompts yes/no
 // TODO: how to test in code?
 type promptConfirm struct {
+	// got DATA RACE during test in github actions
+	m      sync.Mutex
 	prompt *promptui.Prompt
 	label  string
 }
 
 func (p *promptConfirm) run() bool {
+	p.m.Lock()
+	defer p.m.Unlock()
+
 	if p.prompt == nil {
 		p.prompt = &promptui.Prompt{
 			Label:     p.label,
