@@ -12,7 +12,7 @@ import (
 // TODO: considering of using context
 // TODO: poc of using forkExec and handling sigs, norifying sigs via channel and so on.
 
-// ExecCmd execute command
+// Execute executes given command
 func Execute(cmd []string, env config.Envs) error {
 	return ExecCommand(cmd[0], cmd, env)
 }
@@ -27,8 +27,8 @@ func StartShell(env config.Envs) error {
 	return nil
 }
 
-// TODO: make it private once evaluation between exec.Command and syscall.Exec done
 // ExecCommand executes the os/exec Command with environment variales injection
+// TODO: make it private once evaluation between exec.Command and syscall.Exec done
 func ExecCommand(argv0 string, argv []string, env config.Envs) error {
 	// first arg should be the command to execute
 	// check if command can be found in the PATH
@@ -51,7 +51,7 @@ func ExecCommand(argv0 string, argv []string, env config.Envs) error {
 	// TODO: remove: passing env to cmd is not necessary in actually since setEnvs sets env vars to process
 	cmd.Env = os.Environ()
 
-	// run commmand
+	// run command
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -59,8 +59,8 @@ func ExecCommand(argv0 string, argv []string, env config.Envs) error {
 	return nil
 }
 
+// ExecuteWithSyscall executes the command with syscall
 // TODO: make it private once evaluation between exec.Command and syscall.Exec done
-// execute the command with syscall
 func ExecuteWithSyscall(argv0 string, argv []string, env config.Envs) error {
 	// first arg should be the command to execute
 	// check if command can be found in the PATH
@@ -72,7 +72,7 @@ func ExecuteWithSyscall(argv0 string, argv []string, env config.Envs) error {
 	// set environment variables
 	setEnvs(env)
 
-	// run commmand
+	// run command
 	if err := syscall.Exec(binary, argv, os.Environ()); err != nil {
 		return err
 	}
