@@ -58,7 +58,7 @@ func addCommand() *cobra.Command {
 			// set profile
 			Config.Profiles.SetProfile(name, profile)
 
-			// set profile as default profile if default is empty and no profile is exsiting
+			// set profile as default profile if default is empty and no profile is existing
 			if Config.Default == "" {
 				Config.Default = name
 			}
