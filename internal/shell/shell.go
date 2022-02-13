@@ -3,9 +3,9 @@ package shell
 import (
 	"os"
 	"os/exec"
-	"syscall"
 
 	"github.com/sunggun-yu/envp/internal/config"
+	"github.com/sunggun-yu/envp/internal/util"
 )
 
 // TODO: refactoring, cleanup
@@ -14,22 +14,17 @@ import (
 
 // Execute executes given command
 func Execute(cmd []string, env config.Envs) error {
-	return ExecCommand(cmd[0], cmd, env)
+	return execCommand(cmd[0], cmd, env)
 }
 
 // StartShell runs default shell of user to create new shell session
 func StartShell(env config.Envs) error {
 	sh := os.Getenv("SHELL")
-
-	if err := ExecCommand(sh, []string{sh, "-c", sh}, env); err != nil {
-		return err
-	}
-	return nil
+	return execCommand(sh, []string{sh, "-c", sh}, env)
 }
 
-// ExecCommand executes the os/exec Command with environment variales injection
-// TODO: make it private once evaluation between exec.Command and syscall.Exec done
-func ExecCommand(argv0 string, argv []string, env config.Envs) error {
+// execCommand executes the os/exec Command with environment variales injection
+func execCommand(argv0 string, argv []string, env config.Envs) error {
 	// first arg should be the command to execute
 	// check if command can be found in the PATH
 	binary, err := exec.LookPath(argv0)
@@ -59,31 +54,13 @@ func ExecCommand(argv0 string, argv []string, env config.Envs) error {
 	return nil
 }
 
-// ExecuteWithSyscall executes the command with syscall
-// TODO: make it private once evaluation between exec.Command and syscall.Exec done
-func ExecuteWithSyscall(argv0 string, argv []string, env config.Envs) error {
-	// first arg should be the command to execute
-	// check if command can be found in the PATH
-	binary, err := exec.LookPath(argv0)
-	if err != nil {
-		return err
-	}
-
-	// set environment variables
-	setEnvs(env)
-
-	// run command
-	if err := syscall.Exec(binary, argv, os.Environ()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// set env vars of profile to system
+// setEnvs sets env vars of profile to system
+// also, it expand abs path and set it as value of env var if the value start with "~" or "$HOME".
 func setEnvs(env config.Envs) {
 	// inject environment variables of profile
 	for _, e := range env {
-		os.Setenv(e.Name, e.Value)
+		// it's ok to ignore error. it returns original value if it doesn't contain the home path
+		v, _ := util.ExpandHomeDir(e.Value)
+		os.Setenv(e.Name, v)
 	}
 }
