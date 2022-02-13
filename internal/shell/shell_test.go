@@ -47,6 +47,13 @@ var _ = Describe("Shell", func() {
 	})
 
 	Describe("run StartShell", func() {
+
+		// github action has no default SHELL. so set it as /bin/sh before each test case
+		JustBeforeEach(func() {
+			// make SHELL empty to occur error
+			os.Setenv("SHELL", "/bin/sh")
+		})
+
 		When("pass not empty envs", func() {
 			It("should not return err", func() {
 				err := StartShell([]config.Env{
