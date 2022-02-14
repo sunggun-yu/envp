@@ -1,13 +1,17 @@
 package util
 
 import (
+	"crypto/rand"
+	"fmt"
+	"math/big"
 	"os"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("File", func() {
+var _ = Describe("ExpandHomeDir", func() {
 	Describe("has prefix of home dir", func() {
 		When("with value ~", func() {
 			It("should return home dir", func() {
@@ -58,3 +62,81 @@ var _ = Describe("File", func() {
 		})
 	})
 })
+
+var _ = Describe("EnsureConfigFilePath", func() {
+
+	Context("working with existing directory", func() {
+		Describe("set existing directory but non-existing dir", func() {
+			It("should return same path as original", func() {
+				file := "/tmp/some-file-not-existing.yaml"
+				path, err := EnsureConfigFilePath(file)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(path).To(Equal(file))
+			})
+		})
+		Describe("set existing file as directory", func() {
+			It("should return error", func() {
+
+				r, _ := generateRandomString(7)
+				file := fmt.Sprintf("/tmp/%s/some-file-not-existing.yaml", r)
+				testDir := filepath.Dir(file)
+				os.Create(testDir)
+				// delete dir after test
+				defer os.Remove(testDir)
+
+				_, err := EnsureConfigFilePath(file)
+				Expect(err).To(HaveOccurred())
+				fmt.Println(err)
+			})
+		})
+	})
+
+	Context("working with non-existing directory", func() {
+		Describe("set non-existing sub directory", func() {
+			It("should return same path as original", func() {
+				r, _ := generateRandomString(7)
+				file := fmt.Sprintf("/tmp/%s/some-file-not-existing", r)
+				testDir := filepath.Dir(file)
+				// delete dir after test
+				defer os.Remove(testDir)
+
+				path, err := EnsureConfigFilePath(file)
+				_, errCheck := os.Stat(testDir)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(path).To(Equal(file))
+				Expect(errCheck).ToNot(HaveOccurred())
+			})
+		})
+
+		Describe("parent directory is existing but no permission", func() {
+			It("should return error", func() {
+				r, _ := generateRandomString(7)
+				parent := fmt.Sprintf("/tmp/%s/", r)
+				file := filepath.Join(parent, "child-dir/another-non-existing-child-dir")
+				testDir := filepath.Dir(parent)
+				// delete dir after test
+				defer os.Remove(testDir)
+
+				// no write permission
+				os.Mkdir(parent, 0555)
+				_, err := EnsureConfigFilePath(file)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+})
+
+// generate random string
+func generateRandomString(n int) (string, error) {
+	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
+	r := make([]byte, n)
+	for i := 0; i < n; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
+		if err != nil {
+			return "", err
+		}
+		r[i] = letters[num.Int64()]
+	}
+	return string(r), nil
+}

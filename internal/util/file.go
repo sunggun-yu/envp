@@ -23,3 +23,25 @@ func ExpandHomeDir(f string) (string, error) {
 	}
 	return f, nil
 }
+
+// EnsureConfigFilePath ensure the config file path.
+// it mkdir -p the file's directory if not exist
+// also returns abs path of file name if it starts from `~` or `$HOME`
+// path must be "dir" not "file"
+func EnsureConfigFilePath(path string) (string, error) {
+	// expand home dir
+	f, _ := ExpandHomeDir(path)
+	// ensure if file is existing
+	if _, err := os.Stat(f); err != nil {
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(f, 0755)
+			if err != nil {
+				return f, err
+			}
+		} else {
+			// return other errors
+			return f, err
+		}
+	}
+	return f, nil
+}

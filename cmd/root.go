@@ -3,19 +3,20 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/sunggun-yu/envp/internal/config"
 	"github.com/sunggun-yu/envp/internal/shell"
+	"github.com/sunggun-yu/envp/internal/util"
 )
 
 var (
 	// Config is global var that represents all the configs from config file. it marshalled at init
-	Config  config.Config
-	rootCmd = rootCommand()
+	Config     config.Config
+	configPath = "$HOME/.config/envp"
+	rootCmd    = rootCommand()
 )
 
 // Execute execute the root command and sub commands
@@ -106,9 +107,16 @@ func initConfig() {
 	viper.SetDefault("default", "")
 	// set default empty profiles
 	viper.SetDefault("profiles", config.Profiles{})
+
+	defaultConfigPath, err := util.EnsureConfigFilePath(configPath)
+	if err != nil {
+		fmt.Println("Can't create config path:", err)
+		os.Exit(1)
+	}
+
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(configPath(".config/envp")) // $HOME/.config/envp
+	viper.AddConfigPath(defaultConfigPath) // $HOME/.config/envp
 	// write config file if file does not existing
 	viper.SafeWriteConfig()
 
@@ -128,33 +136,11 @@ func initConfig() {
 
 	// write config file with current config that is readed
 	// this write will be helpful for the case config file is existing but empty
-	err := viper.WriteConfig()
+	err = viper.WriteConfig()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
-
-// get config path. mkdir -p it not exist
-func configPath(base string) string {
-	// get $HOME
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	// get config path : $HOME/.config/envp
-	path := filepath.Join(home, base)
-	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
-			// mkdir -p if directory is not existing
-			os.MkdirAll(path, 0755)
-		} else {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	}
-	return path
 }
 
 // unmarshal config.Config
