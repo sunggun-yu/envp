@@ -82,9 +82,10 @@ func rootCommand() *cobra.Command {
 			case cmd.ArgsLenAtDash() == 0:
 				profile, err = Config.DefaultProfile()
 				command = args
-			case cmd.ArgsLenAtDash() == 1:
+			case cmd.ArgsLenAtDash() > 0:
 				profile, err = Config.Profiles.FindProfile(args[0])
-				command = args[1:]
+				// only args after double dash "--"" should be considered as command
+				command = args[cmd.ArgsLenAtDash():]
 			}
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
