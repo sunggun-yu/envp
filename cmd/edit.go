@@ -44,7 +44,7 @@ func editCommand() *cobra.Command {
 		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			name, profile, _, err := CurrentProfile(args)
+			profile, err := currentProfile(args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
@@ -68,19 +68,16 @@ func editCommand() *cobra.Command {
 				profile.Env = config.MapToEnv(menv)
 			}
 
-			// set updated profile. not necessary
-			Config.Profiles.SetProfile(name, *profile)
-
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
 
 			// it's being watched in root initConfig - viper.WatchConfig()
 			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if p, _ := Config.Profiles.FindProfile(name); p == nil {
-					rc <- fmt.Errorf("profile %v not updated", name)
+				if p, _ := Config.Profile(profile.Name); p == nil {
+					rc <- fmt.Errorf("profile %v not updated", profile.Name)
 					return
 				}
-				fmt.Println("Profile", name, "updated successfully:", e.Name)
+				fmt.Println("Profile", profile.Name, "updated successfully:", e.Name)
 				rc <- nil
 			})
 

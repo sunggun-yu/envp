@@ -37,25 +37,25 @@ func startCommand() *cobra.Command {
 		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			name, profile, _, err := CurrentProfile(args)
+			profile, err := currentProfile(args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
 			}
 
 			// print start of session message
-			fmt.Println(color.GreenString("Starting ENVP session..."), color.RedString(name))
+			fmt.Println(color.GreenString("Starting ENVP session..."), color.RedString(profile.Name))
 			color.Cyan(profile.Env.String())
 			fmt.Println("> press ctrl+d or type 'exit' to close session")
 
 			// set ENVP_PROFILE env var to leverage profile info in the prompt, such as starship.
-			os.Setenv(envpEnvVarKey, name)
+			os.Setenv(envpEnvVarKey, profile.Name)
 
 			// ignore error message from shell. let shell print out the errors
 			shell.StartShell(profile.Env)
 
 			// print end of session message
-			fmt.Println(color.GreenString("ENVP session closed..."), color.RedString(name))
+			fmt.Println(color.GreenString("ENVP session closed..."), color.RedString(profile.Name))
 			return nil
 		},
 	}

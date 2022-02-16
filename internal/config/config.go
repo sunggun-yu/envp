@@ -25,32 +25,35 @@ func (e *DefaultProfileNotSetError) Error() string {
 }
 
 // DefaultProfile returns default profile of config. it returns DefaultProfileNotSetError when default file is not set
-func (c *Config) DefaultProfile() (*Profile, error) {
+func (c *Config) DefaultProfile() (*NamedProfile, error) {
 	if c.Default == "" {
 		return nil, NewDefaultProfileNotSetError()
 	}
-	return c.Profiles.FindProfile(c.Default)
-}
-
-// Profile find and return Profile from name
-// if name is empty it returns default Profile from Profiles
-// otherwise speicified Profile will be return
-// error will be return when default is not set or profile is not existing
-func (c *Config) Profile(name string) (*Profile, error) {
-
-	var profile *Profile
-	var err error
-
-	switch {
-	case name != "":
-		profile, err = c.Profiles.FindProfile(name)
-	default:
-		profile, err = c.DefaultProfile()
-	}
+	name := c.Default
+	p, err := c.Profiles.FindProfile(name)
 	if err != nil {
 		return nil, err
 	}
-	return profile, nil
+	profile := NamedProfile{
+		Profile:   p,
+		Name:      name,
+		IsDefault: true,
+	}
+	return &profile, nil
+}
+
+// Profile find and return NamedProfile of name
+// IsDefault will be true if the profile is same as default
+func (c *Config) Profile(name string) (*NamedProfile, error) {
+	p, err := c.Profiles.FindProfile(name)
+	if err != nil {
+		return nil, err
+	}
+	return &NamedProfile{
+		Profile:   p,
+		Name:      name,
+		IsDefault: c.Default == name,
+	}, nil
 }
 
 // ParseEnvFlagToMap parse string format "env=val" to map "env: val". it can be used fo dup check from slice of Env

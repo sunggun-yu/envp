@@ -26,6 +26,13 @@ func NewProfile() *Profile {
 	}
 }
 
+// NamedProfile is struct that embed Profile to add it's name and other useful properties.
+type NamedProfile struct {
+	*Profile  // embed pointer of Profile
+	Name      string
+	IsDefault bool
+}
+
 // Envs is slice of Env
 type Envs []Env
 

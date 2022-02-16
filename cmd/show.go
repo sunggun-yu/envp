@@ -38,13 +38,13 @@ func showCommand() *cobra.Command {
 		Example:           cmdExampleShow(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			name, profile, _, err := CurrentProfile(args)
+			profile, err := currentProfile(args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
 			}
 
-			fmt.Println("# profile:", name)
+			fmt.Println("# profile:", profile.Name)
 			if flags.export {
 				fmt.Println("# you can export env vars of profile with following command")
 				fmt.Println("# eval $(envp show --export)")

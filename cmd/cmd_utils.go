@@ -11,20 +11,14 @@ import (
 // CurrentProfile is function that returns config.Profile
 // it checks args and return default profile if args has no profile name
 // otherwise speicified profile will be return
-func CurrentProfile(args []string) (name string, profile *config.Profile, isDefault bool, err error) {
+func currentProfile(args []string) (profile *config.NamedProfile, err error) {
 	switch {
 	case len(args) > 0:
-		name = args[0]
-		profile, err = Config.Profiles.FindProfile(name)
-		if Config.Default == name {
-			isDefault = true
-		}
+		profile, err = Config.Profile(args[0])
 	default:
-		name = Config.Default
-		isDefault = true
 		profile, err = Config.DefaultProfile()
 	}
-	return name, profile, isDefault, err
+	return profile, err
 }
 
 // print command example

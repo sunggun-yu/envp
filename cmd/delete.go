@@ -34,21 +34,21 @@ func deleteCommand() *cobra.Command {
 		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			name, _, isDefault, err := CurrentProfile(args)
+			profile, err := currentProfile(args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
 			}
 
 			// set default="" if default profile is being deleted
-			if isDefault {
+			if profile.IsDefault {
 				Config.Default = ""
-				color.Yellow("WARN: You are deleting default profile '%s'. please set default profile once it is deleted", name)
+				color.Yellow("WARN: You are deleting default profile '%s'. please set default profile once it is deleted", profile.Name)
 			}
 			// ask y/n decision before proceed delete
-			if prompt.PromptConfirm(fmt.Sprintf("Delete profile %s", color.RedString(name))) {
+			if prompt.PromptConfirm(fmt.Sprintf("Delete profile %s", color.RedString(profile.Name))) {
 				// delete profile
-				Config.Profiles.DeleteProfile(name)
+				Config.Profiles.DeleteProfile(profile.Name)
 			} else {
 				fmt.Println("Cancelled")
 				os.Exit(0)
@@ -59,11 +59,11 @@ func deleteCommand() *cobra.Command {
 			// I think underlying of viper.OnConfiChange is goroutine. but just run it as goroutine just in case
 			// it's being watched in root initConfig - viper.WatchConfig()
 			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if p, _ := Config.Profiles.FindProfile(name); p != nil {
-					rc <- fmt.Errorf("profile %v not deleted", name)
+				if p, _ := Config.Profile(profile.Name); p != nil {
+					rc <- fmt.Errorf("profile %v not deleted", profile.Name)
 					return
 				}
-				fmt.Println("Profile", name, "deleted successfully:", e.Name)
+				fmt.Println("Profile", profile.Name, "deleted successfully:", e.Name)
 				rc <- nil
 			})
 

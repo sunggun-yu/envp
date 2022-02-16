@@ -29,7 +29,7 @@ var _ = Describe("ExpandHomeDir", func() {
 			})
 		})
 
-		When("error occured getting $HOME", func() {
+		When("error occurred getting $HOME", func() {
 			// backup original home path to set it back after test
 			var originalHome string
 			originalHome, _ = os.UserHomeDir()

@@ -37,7 +37,7 @@ var (
 	}
 
 	testDataConfig = func() config.Config {
-		file, _ := ioutil.ReadFile("testdata/config.yaml")
+		file, _ := ioutil.ReadFile("../../testdata/config.yaml")
 
 		var cfg config.Config
 		err := yaml.Unmarshal(file, &cfg)
@@ -132,9 +132,19 @@ func TestDefaultProfile(t *testing.T) {
 		}
 	})
 
-	t.Run("when default profile not exist", func(t *testing.T) {
+	t.Run("when default profile is not set", func(t *testing.T) {
 		// make default empty
 		cfg.Default = ""
+		if _, err := cfg.DefaultProfile(); err == nil {
+			t.Error("Should be error")
+		} else {
+			fmt.Println(err)
+		}
+	})
+
+	t.Run("when default profile not exist", func(t *testing.T) {
+		// make default empty
+		cfg.Default = "non-existing-profile-name"
 		if _, err := cfg.DefaultProfile(); err == nil {
 			t.Error("Should be error")
 		} else {
@@ -146,11 +156,11 @@ func TestDefaultProfile(t *testing.T) {
 func TestProfile(t *testing.T) {
 	cfg := testDataConfig()
 
-	t.Run("should return current default when set empty string", func(t *testing.T) {
-		if p, err := cfg.Profile(""); err != nil {
-			t.Error("Should not be nil.")
-		} else if p.Desc != "docker" {
-			t.Error("Should not be same as default profile")
+	t.Run("should return nil and error when pass empty string", func(t *testing.T) {
+		if p, err := cfg.Profile(""); err == nil {
+			t.Error("Should occur error")
+		} else if p != nil {
+			t.Error("Should be nil.")
 		}
 	})
 
@@ -164,7 +174,6 @@ func TestProfile(t *testing.T) {
 
 	t.Run("when set non-existing profile", func(t *testing.T) {
 		// make default empty and find profile that is not existing
-		cfg.Default = ""
 		if _, err := cfg.Profile("not-existing-profile"); err == nil {
 			t.Error("Should be error")
 		} else {

@@ -8,7 +8,8 @@ import (
 
 func Arg0NotExistingProfile() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		_, err := Config.Profiles.FindProfile(args[0])
+		// TODO: must check the length of args
+		_, err := Config.Profile(args[0])
 		if err != nil {
 			return err
 		}
@@ -23,7 +24,7 @@ func Arg0ExistingProfile() cobra.PositionalArgs {
 		// if profiles == nil || len(profiles.AllKeys()) == 0 {
 		// 	return nil
 		// }
-		if p, _ := Config.Profiles.FindProfile(args[0]); p != nil {
+		if p, _ := Config.Profile(args[0]); p != nil {
 			return fmt.Errorf("%v is existing already", args[0])
 		}
 		return nil

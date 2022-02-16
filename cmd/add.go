@@ -67,7 +67,7 @@ func addCommand() *cobra.Command {
 			rc := make(chan error, 1)
 			// it's being watched in root initConfig - viper.WatchConfig()
 			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if p, _ := Config.Profiles.FindProfile(name); p == nil {
+				if p, _ := Config.Profile(name); p == nil {
 					rc <- fmt.Errorf("profile %v not added", name)
 					return
 				}

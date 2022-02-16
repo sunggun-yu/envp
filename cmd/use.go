@@ -34,26 +34,26 @@ func useCommand() *cobra.Command {
 		Example:           cmdExampleUse(),
 		ValidArgsFunction: ValidArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name, _, isDefault, err := CurrentProfile(args)
+
+			profile, err := currentProfile(args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
 			}
 			// just exit if selected profile is already default
-			if isDefault {
-				fmt.Println("Profile", name, "is alreday set as default")
+			if profile.IsDefault {
+				fmt.Println("Profile", profile.Name, "is alreday set as default")
 				os.Exit(0)
 			}
 
 			// set selected profile as default
-			Config.Default = name
+			Config.Default = profile.Name
 
 			// wait for the config file update and verify profile is added or not
 			rc := make(chan error, 1)
-
 			// it's being watched in root initConfig - viper.WatchConfig()
 			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if Config.Default != name {
+				if Config.Default != profile.Name {
 					rc <- fmt.Errorf("default profile is not updated")
 					return
 				}

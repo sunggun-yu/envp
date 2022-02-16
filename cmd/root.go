@@ -70,7 +70,7 @@ func rootCommand() *cobra.Command {
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			var profile *config.Profile
+			var profile *config.NamedProfile
 			var command []string
 			var err error
 
@@ -83,7 +83,7 @@ func rootCommand() *cobra.Command {
 				profile, err = Config.DefaultProfile()
 				command = args
 			case cmd.ArgsLenAtDash() > 0:
-				profile, err = Config.Profiles.FindProfile(args[0])
+				profile, err = Config.Profile(args[0])
 				// only args after double dash "--"" should be considered as command
 				command = args[cmd.ArgsLenAtDash():]
 			}
