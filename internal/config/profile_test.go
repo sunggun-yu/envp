@@ -85,6 +85,7 @@ func TestProfileNames(t *testing.T) {
 		"org.nprod.argocd.argo2",
 		"org.nprod.vpn.vpn1",
 		"org.nprod.vpn.vpn2",
+		"parent-has-env",
 	}
 
 	actual := profiles.ProfileNames()
@@ -233,6 +234,11 @@ func TestSetProfile(t *testing.T) {
 		if s == nil {
 			t.Error("sibling is not exist after appending")
 		}
+	})
+
+	t.Run("adding into profile that has env info but no children", func(t *testing.T) {
+		// adding into existing nested profile
+		testCaseNormal("parent-has-env.new-child", "new-child")
 	})
 
 	t.Run("overwriting existing profile", func(t *testing.T) {

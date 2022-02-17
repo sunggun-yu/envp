@@ -34,6 +34,11 @@ profiles:
     env:
     - name: DOCKER_HOST
       value: ssh://meow@192.168.1.40
+  parent-has-env:
+    desc: docker
+    env:
+    - name: DOCKER_HOST
+      value: ssh://meow@192.168.1.40
   org:
     desc: org
     nprod:

@@ -122,6 +122,10 @@ func (p *Profiles) SetProfile(key string, profile Profile) error {
 	}
 	// add last profile into last parent
 	pname := keys[len(keys)-1]
+	// Profiles was nil when parent has desc, env info by omitempty
+	if parent.Profiles == nil {
+		parent.Profiles = Profiles{}
+	}
 	parent.Profiles[pname] = &profile
 	return nil
 }
