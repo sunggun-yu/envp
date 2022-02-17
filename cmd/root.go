@@ -93,7 +93,8 @@ func rootCommand() *cobra.Command {
 			}
 
 			// Execute command
-			if err := shell.Execute(command, profile.Env); err != nil {
+			sc := shell.NewShellCommand()
+			if err := sc.Execute(command, profile.Env, profile.Name); err != nil {
 				return err
 			}
 			return nil

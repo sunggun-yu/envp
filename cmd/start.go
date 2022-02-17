@@ -1,10 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/sunggun-yu/envp/internal/shell"
 )
@@ -12,8 +8,6 @@ import (
 func init() {
 	rootCmd.AddCommand(startCommand())
 }
-
-const envpEnvVarKey = "ENVP_PROFILE"
 
 // example of delete command
 func cmdExampleStart() string {
@@ -42,20 +36,10 @@ func startCommand() *cobra.Command {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
 			}
-
-			// print start of session message
-			fmt.Println(color.GreenString("Starting ENVP session..."), color.RedString(profile.Name))
-			color.Cyan(profile.Env.String())
-			fmt.Println("> press ctrl+d or type 'exit' to close session")
-
-			// set ENVP_PROFILE env var to leverage profile info in the prompt, such as starship.
-			os.Setenv(envpEnvVarKey, profile.Name)
-
 			// ignore error message from shell. let shell print out the errors
-			shell.StartShell(profile.Env)
+			sc := shell.NewShellCommand()
+			sc.StartShell(profile.Env, profile.Name)
 
-			// print end of session message
-			fmt.Println(color.GreenString("ENVP session closed..."), color.RedString(profile.Name))
 			return nil
 		},
 	}
