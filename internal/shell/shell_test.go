@@ -82,7 +82,7 @@ var _ = Describe("Shell", func() {
 			})
 		})
 
-		When("error occured", func() {
+		When("error occurred", func() {
 			// backup original SHELL to set it back after test
 			sh := os.Getenv("SHELL")
 
