@@ -2,11 +2,15 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"testing"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -74,3 +78,107 @@ func TestConfigFile(t *testing.T) {
 	ps = c.ProfileNames()
 	assert.Equal(cases-1, len(ps), "saved profile should match with number of cases")
 }
+
+func TestInitConfig(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	t.Run("when pass empty string of config file path", func(t *testing.T) {
+		_, err := NewConfigFile("")
+		assert.Error(err, "config file should not empty string")
+		fmt.Println(err)
+	})
+
+	t.Run("when create empty ConfigFile instance directly", func(t *testing.T) {
+		cf := ConfigFile{}
+		err := cf.initConfigFile()
+		assert.Error(err, "config file should not empty")
+	})
+}
+
+func TestRead(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+	testFile := fmt.Sprintf("%v", GinkgoRandomSeed())
+	defer os.Remove(testFile) // remove file after testing
+
+	t.Run("when create empty ConfigFile instance directly", func(t *testing.T) {
+		cf, _ := NewConfigFile(testFile)
+
+		// inject wrong format of yaml data into file
+		wrongData := `default: {}
+		profiles:
+      - wrong
+      - 1
+		`
+		ioutil.WriteFile(testFile, []byte(wrongData), 0600)
+
+		cf.config = nil
+		_, err := cf.Read()
+		assert.Error(err, "should occurr error when have wrong format of config file")
+	})
+}
+
+func TestWrite(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	t.Run("when write without read - nil config", func(t *testing.T) {
+		testFile := fmt.Sprintf("%v", GinkgoRandomSeed())
+		defer os.Remove(testFile) // remove file after testing
+		cf, _ := NewConfigFile(testFile)
+		err := cf.Save()
+		assert.Error(err, "should occurr error when have wrong format of config file")
+	})
+
+	t.Run("when have no permisson on config file", func(t *testing.T) {
+		testFile := fmt.Sprintf("%v", GinkgoRandomSeed())
+		defer os.Remove(testFile) // remove file after testing
+		cf, _ := NewConfigFile(testFile)
+		cf.Read()
+		// make it read-only
+		os.Chmod(testFile, 0400)
+		err := cf.Save()
+		assert.Error(err, "should occurr error when have wrong format of config file")
+	})
+}
+
+// ---------------------------------------------------------------------------
+// Ginkgo test suite
+// ---------------------------------------------------------------------------
+var _ = Describe("NewConfigFile", func() {
+	When("set exisiting directory as config file", func() {
+		testFile := fmt.Sprintf("/tmp/%v/%v", GinkgoRandomSeed(), GinkgoRandomSeed())
+		testDir := filepath.Dir(testFile)
+		os.Create(testDir)
+		defer os.Remove(testFile) // remove file after testing
+
+		It("should return error", func() {
+			_, err := NewConfigFile(testFile)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	When("error occurred getting $HOME", func() {
+		// backup original home path to set it back after test
+		var originalHome string
+		originalHome, _ = os.UserHomeDir()
+		testFile := fmt.Sprintf("$HOME/%v/%v.yaml", GinkgoRandomSeed(), GinkgoRandomSeed())
+		defer os.Remove(testFile) // remove file after testing
+
+		JustBeforeEach(func() {
+			// make env Home empty to make error
+			os.Setenv("HOME", "")
+		})
+
+		It("should return error", func() {
+			_, err := NewConfigFile(testFile)
+			Expect(err).To(HaveOccurred())
+		})
+
+		JustAfterEach(func() {
+			// revert HOME to original
+			os.Setenv("HOME", originalHome)
+		})
+	})
+})

@@ -30,7 +30,10 @@ func ExpandHomeDir(f string) (string, error) {
 // path must be "dir" not "file"
 func EnsureConfigFilePath(path string) (string, error) {
 	// expand home dir
-	f, _ := ExpandHomeDir(path)
+	f, err := ExpandHomeDir(path)
+	if err != nil {
+		return path, err
+	}
 	// ensure if file is existing
 	if _, err := os.Stat(f); err != nil {
 		if os.IsNotExist(err) {

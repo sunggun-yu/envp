@@ -12,7 +12,7 @@ import (
 )
 
 var _ = Describe("ExpandHomeDir", func() {
-	Describe("has prefix of home dir", func() {
+	Context("has prefix of home dir", func() {
 		When("with value ~", func() {
 			It("should return home dir", func() {
 				p, err := ExpandHomeDir("~")
@@ -53,7 +53,7 @@ var _ = Describe("ExpandHomeDir", func() {
 		})
 	})
 
-	Describe("has no prefix of home dir", func() {
+	When("has no prefix of home dir", func() {
 		It("should return same path as original", func() {
 			path := "/tmp/something/something"
 			p, err := ExpandHomeDir(path)
@@ -65,7 +65,7 @@ var _ = Describe("ExpandHomeDir", func() {
 
 var _ = Describe("EnsureConfigFilePath", func() {
 
-	Context("working with existing directory", func() {
+	When("working with existing directory", func() {
 		Describe("set existing directory but non-existing dir", func() {
 			It("should return same path as original", func() {
 				file := "/tmp/some-file-not-existing.yaml"
@@ -74,7 +74,8 @@ var _ = Describe("EnsureConfigFilePath", func() {
 				Expect(path).To(Equal(file))
 			})
 		})
-		Describe("set existing file as directory", func() {
+
+		When("set existing file as directory", func() {
 			It("should return error", func() {
 
 				r, _ := generateRandomString(7)
@@ -91,8 +92,31 @@ var _ = Describe("EnsureConfigFilePath", func() {
 		})
 	})
 
+	When("error occurred getting $HOME", func() {
+		// backup original home path to set it back after test
+		var originalHome string
+		originalHome, _ = os.UserHomeDir()
+
+		JustBeforeEach(func() {
+			// make env Home empty to make error
+			os.Setenv("HOME", "")
+		})
+
+		It("should return error and same path as input", func() {
+			path := "$HOME/something/something"
+			p, err := EnsureConfigFilePath(path)
+			Expect(err).To(HaveOccurred())
+			Expect(p).To(Equal(path))
+		})
+
+		JustAfterEach(func() {
+			// revert HOME to original
+			os.Setenv("HOME", originalHome)
+		})
+	})
+
 	Context("working with non-existing directory", func() {
-		Describe("set non-existing sub directory", func() {
+		When("set non-existing sub directory", func() {
 			It("should return same path as original", func() {
 				r, _ := generateRandomString(7)
 				file := fmt.Sprintf("/tmp/%s/some-file-not-existing", r)
@@ -109,7 +133,7 @@ var _ = Describe("EnsureConfigFilePath", func() {
 			})
 		})
 
-		Describe("parent directory is existing but no permission", func() {
+		When("parent directory is existing but no permission", func() {
 			It("should return error", func() {
 				r, _ := generateRandomString(7)
 				parent := fmt.Sprintf("/tmp/%s/", r)

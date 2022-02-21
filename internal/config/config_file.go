@@ -24,12 +24,13 @@ type ConfigFile struct {
 	mu     sync.RWMutex
 	name   string
 	config *Config
-	isInit bool
 }
 
 // NewConfigFile returns ConfigFile. it create the config file directory and file if not exists
 func NewConfigFile(name string) (*ConfigFile, error) {
-
+	if name == "" {
+		return nil, fmt.Errorf("empty config file name")
+	}
 	// ensure if file is exsiting. if not create directory and file
 	// expand and replace file path if it is refering home dir, `~`, `$HOME`
 	p, err := util.EnsureConfigFilePath(filepath.Dir(name))
@@ -74,14 +75,9 @@ func (c *ConfigFile) initConfigFile() error {
 	// create default empty config file if file is empty (check by size)
 	fs, _ := f.Stat()
 	if fs.Size() == 0 {
-		b, _ := yaml.Marshal(&defaultConfig)
-		if _, err := f.Write(b); err != nil {
-			return err
-		}
+		b, _ := yaml.Marshal(&defaultConfig) // error can be ignored since it marshal from defined object
+		f.Write(b)                           // error can be ignored since it marshal from defined object
 	}
-
-	// set init flag true
-	c.isInit = true
 	return nil
 }
 
@@ -95,9 +91,6 @@ func (c *ConfigFile) Read() (*Config, error) {
 	if err := yaml.Unmarshal(b, &c.config); err != nil {
 		return nil, err
 	}
-	if c.config == nil {
-		return nil, fmt.Errorf("cannot read config")
-	}
 	// set mutex to Config to syncronize object along with file operation
 	c.config.SetMutex(&c.mu)
 	return c.config, nil
@@ -110,10 +103,10 @@ func (c *ConfigFile) Save() error {
 	defer c.mu.Unlock()
 
 	// Marshal config
-	b, err := yaml.Marshal(c.config)
-	if err != nil {
-		return err
+	if c.config == nil {
+		return fmt.Errorf("config is nil. nothing to write")
 	}
+	b, _ := yaml.Marshal(c.config) // error can be ignored since it marshal from defined object
 
 	// open file with read/write and trunc flag
 	f, err := os.OpenFile(c.name, os.O_RDWR|os.O_TRUNC, 0600)
@@ -122,10 +115,7 @@ func (c *ConfigFile) Save() error {
 	}
 	defer f.Close()
 
-	_, err = f.Write(b)
-	if err != nil {
-		return err
-	}
+	f.Write(b) // error can be ignored since it write file with guaranteed object and file permission
 
 	return nil
 }
