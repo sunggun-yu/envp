@@ -40,16 +40,15 @@ func TestConfigFile(t *testing.T) {
 					{Name: "VAR", Value: strconv.Itoa(n)},
 				},
 			})
+			// when perform right after update config
+			err = cf.Save()
+			if err != nil {
+				t.Error("error should not occurred on save", err)
+			}
 			wg.Done()
 		}(i)
 	}
 	wg.Wait()
-
-	// when perform after update config
-	err = cf.Save()
-	if err != nil {
-		t.Error("error should not occurred on save", err)
-	}
 
 	// when read after save the config file
 	c, err := cf.Read()
