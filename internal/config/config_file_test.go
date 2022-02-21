@@ -6,21 +6,23 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // perform test whithin single process but multi thread operation
 func TestConfigFile(t *testing.T) {
+
+	// assert
+	assert := assert.New(t)
+
 	testFile := "./testdata/multi-thread-test.yaml"
 	defer os.Remove(testFile) // remove file after testing
 
 	// when create ConfigFile by NewConfigFile
 	cf, err := NewConfigFile(testFile)
-	if err != nil {
-		t.Error("error should not occurred", err)
-	}
-	if cf == nil {
-		t.Error("it should not nil")
-	}
+	assert.NoError(err, "error should not occurred")
+	assert.NotNil(cf, "it should not be nil")
 
 	// when perform read/write config concurrently
 	cases := 100
@@ -30,9 +32,9 @@ func TestConfigFile(t *testing.T) {
 		// add profile as much as number of cases concurrently
 		go func(n int) {
 			c, err := cf.Read()
-			if err != nil {
-				t.Error("error should not occurred on read operation", err)
-			}
+
+			assert.NoError(err, "error should not occurred on read operation")
+
 			c.SetDefault(strconv.Itoa(n)) // it may not guarentee the order
 			c.SetProfile(fmt.Sprintf("hello.world-%v", n), Profile{
 				Desc: strconv.Itoa(n),
@@ -42,9 +44,7 @@ func TestConfigFile(t *testing.T) {
 			})
 			// when perform right after update config
 			err = cf.Save()
-			if err != nil {
-				t.Error("error should not occurred on save", err)
-			}
+			assert.NoError(err, "error should not occurred on save")
 			wg.Done()
 		}(i)
 	}
@@ -52,36 +52,25 @@ func TestConfigFile(t *testing.T) {
 
 	// when read after save the config file
 	c, err := cf.Read()
-	if err != nil {
-		t.Error("error should not occurred on read after save config")
-	}
+	assert.NoError(err, "error should not occurred on read after save config")
 
 	// when validate the saved result
 	ps := c.ProfileNames()
-	if len(ps) != cases {
-		t.Errorf("saved profile should match with number of cases. actual %v, expected %v", len(ps), cases)
-	}
+	assert.Equal(cases, len(ps), "saved profile should match with number of cases")
 
 	// when delete profile
-	if err := c.DeleteProfile("hello.world-2"); err != nil {
-		t.Error("error should not occurred on delete")
-	}
+	err = c.DeleteProfile("hello.world-2")
+	assert.NoError(err, "error should not occurred on delete")
 
 	// when perform after update config
 	err = cf.Save()
-	if err != nil {
-		t.Error("error should not occurred on save", err)
-	}
+	assert.NoError(err, "error should not occurred on save")
 
 	// when read after save the config file
 	c, err = cf.Read()
-	if err != nil {
-		t.Error("error should not occurred on read after save config")
-	}
+	assert.NoError(err, "error should not occurred on read after save config")
 
 	// when validate the saved result
 	ps = c.ProfileNames()
-	if len(ps) != cases-1 {
-		t.Errorf("saved profile should match with number of cases. actual %v, expected %v", len(ps), cases)
-	}
+	assert.Equal(cases-1, len(ps), "saved profile should match with number of cases")
 }
