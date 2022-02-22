@@ -3,9 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/sunggun-yu/envp/internal/config"
 )
 
@@ -15,6 +13,7 @@ type addFlags struct {
 	env  []string
 }
 
+// init
 func init() {
 	rootCmd.AddCommand(addCommand())
 }
@@ -43,10 +42,15 @@ func addCommand() *cobra.Command {
 		SilenceUsage: true,
 		Example:      cmdExampleAdd(),
 		Args: cobra.MatchAll(
-			Arg0AsProfileName(),
-			Arg0ExistingProfile(),
+			arg0AsProfileName(),
+			arg0ExistingProfile(),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
+
+			cfg, err := configFile.Read()
+			if err != nil {
+				return err
+			}
 
 			name := args[0]
 			profile := config.Profile{
@@ -56,35 +60,19 @@ func addCommand() *cobra.Command {
 			profile.Env = config.ParseEnvFlagToEnv(flags.env)
 
 			// set profile
-			Config.Profiles.SetProfile(name, profile)
+			cfg.SetProfile(name, profile)
 
 			// set profile as default profile if default is empty and no profile is existing
-			if Config.Default == "" {
-				Config.Default = name
+			if cfg.Default == "" {
+				cfg.SetDefault(name)
 			}
 
-			// wait for the config file update and verify profile is added or not
-			rc := make(chan error, 1)
-			// it's being watched in root initConfig - viper.WatchConfig()
-			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if p, _ := Config.Profile(name); p == nil {
-					rc <- fmt.Errorf("profile %v not added", name)
-					return
-				}
-				fmt.Println("Profile", name, "added successfully:", e.Name)
-				rc <- nil
-			})
-
-			// update config and save
-			if err := updateAndSaveConfigFile(&Config, viper.GetViper()); err != nil {
+			if err := configFile.Save(); err != nil {
 				return err
 			}
 
-			// wait for profile validation channel
-			errOnChange := <-rc
-			if errOnChange != nil {
-				return errOnChange
-			}
+			fmt.Println("Profile", name, "added successfully")
+
 			return nil
 		},
 	}

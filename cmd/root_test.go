@@ -19,7 +19,7 @@ var _ = Describe("run the command with empty args", Ordered, func() {
 	testDir := "/tmp/envp/test"
 
 	BeforeAll(func() {
-		configPath = testDir
+		configFileName = testDir
 		rootCmd.SetOut(&stdout)
 		rootCmd.SetErr(&stderr)
 		// this is condition for test case

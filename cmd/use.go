@@ -5,9 +5,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func init() {
@@ -32,10 +30,14 @@ func useCommand() *cobra.Command {
 		Short:             "Set default environment variable profile",
 		SilenceUsage:      true,
 		Example:           cmdExampleUse(),
-		ValidArgsFunction: ValidArgsProfileList,
+		ValidArgsFunction: validArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			profile, err := currentProfile(args)
+			cfg, err := configFile.Read()
+			if err != nil {
+				return err
+			}
+			profile, err := currentProfile(cfg, args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
@@ -47,30 +49,14 @@ func useCommand() *cobra.Command {
 			}
 
 			// set selected profile as default
-			Config.Default = profile.Name
+			cfg.SetDefault(profile.Name)
 
-			// wait for the config file update and verify profile is added or not
-			rc := make(chan error, 1)
-			// it's being watched in root initConfig - viper.WatchConfig()
-			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if Config.Default != profile.Name {
-					rc <- fmt.Errorf("default profile is not updated")
-					return
-				}
-				fmt.Println("Default profile is set to", color.GreenString(Config.Default))
-				rc <- nil
-			})
-
-			// update config and save
-			if err := updateAndSaveConfigFile(&Config, viper.GetViper()); err != nil {
+			if err := configFile.Save(); err != nil {
 				return err
 			}
 
-			// wait for profile validation channel
-			errOnChange := <-rc
-			if errOnChange != nil {
-				return errOnChange
-			}
+			fmt.Println("Default profile is set to", color.GreenString(cfg.Default))
+
 			return nil
 		},
 	}

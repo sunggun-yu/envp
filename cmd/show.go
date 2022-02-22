@@ -34,11 +34,14 @@ func showCommand() *cobra.Command {
 		Use:               "show profile-name [flags]",
 		Short:             "Print the environment variables of profile",
 		SilenceUsage:      true,
-		ValidArgsFunction: ValidArgsProfileList,
+		ValidArgsFunction: validArgsProfileList,
 		Example:           cmdExampleShow(),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
-			profile, err := currentProfile(args)
+			cfg, err := configFile.Read()
+			if err != nil {
+				return err
+			}
+			profile, err := currentProfile(cfg, args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err

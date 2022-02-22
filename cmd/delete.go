@@ -5,9 +5,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/sunggun-yu/envp/internal/prompt"
 )
 
@@ -31,10 +29,14 @@ func deleteCommand() *cobra.Command {
 		Aliases:           []string{"del"},
 		SilenceUsage:      true,
 		Example:           cmdExampleDelete(),
-		ValidArgsFunction: ValidArgsProfileList,
+		ValidArgsFunction: validArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			profile, err := currentProfile(args)
+			cfg, err := configFile.Read()
+			if err != nil {
+				return err
+			}
+			profile, err := currentProfile(cfg, args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
@@ -42,41 +44,21 @@ func deleteCommand() *cobra.Command {
 
 			// set default="" if default profile is being deleted
 			if profile.IsDefault {
-				Config.Default = ""
+				cfg.SetDefault("")
 				color.Yellow("WARN: You are deleting default profile '%s'. please set default profile once it is deleted", profile.Name)
 			}
 			// ask y/n decision before proceed delete
 			if prompt.PromptConfirm(fmt.Sprintf("Delete profile %s", color.RedString(profile.Name))) {
 				// delete profile
-				Config.Profiles.DeleteProfile(profile.Name)
+				cfg.DeleteProfile(profile.Name)
 			} else {
 				fmt.Println("Cancelled")
 				os.Exit(0)
 			}
-
-			// wait for the config file update and verify profile is added or not
-			rc := make(chan error, 1)
-			// I think underlying of viper.OnConfiChange is goroutine. but just run it as goroutine just in case
-			// it's being watched in root initConfig - viper.WatchConfig()
-			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if p, _ := Config.Profile(profile.Name); p != nil {
-					rc <- fmt.Errorf("profile %v not deleted", profile.Name)
-					return
-				}
-				fmt.Println("Profile", profile.Name, "deleted successfully:", e.Name)
-				rc <- nil
-			})
-
-			// update config and save
-			if err := updateAndSaveConfigFile(&Config, viper.GetViper()); err != nil {
+			if err := configFile.Save(); err != nil {
 				return err
 			}
-
-			// wait for profile validation channel
-			errOnChange := <-rc
-			if errOnChange != nil {
-				return errOnChange
-			}
+			fmt.Println("Profile", profile.Name, "deleted successfully")
 			return nil
 		},
 	}

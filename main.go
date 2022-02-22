@@ -14,7 +14,7 @@ var (
 
 func main() {
 	// set version
-	cmd.Version = Version()
+	cmd.SetVersion(Version())
 	cmd.Execute()
 }
 

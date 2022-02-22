@@ -17,12 +17,14 @@ import (
 
 const envpEnvVarKey = "ENVP_PROFILE"
 
+// ShellCommand is struct of shell command.
 type ShellCommand struct {
 	Stdin  io.Reader
 	Stdout io.Writer
 	Stderr io.Writer
 }
 
+// NewShellCommand create ShellCommand with os stdin, stdout, and stderr as default
 func NewShellCommand() *ShellCommand {
 	return &ShellCommand{
 		Stdin:  os.Stdin,

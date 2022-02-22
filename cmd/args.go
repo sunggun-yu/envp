@@ -6,10 +6,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Arg0NotExistingProfile() cobra.PositionalArgs {
+// arg0NotExistingProfile ensure arg for profile name is existing in the profiles
+func arg0NotExistingProfile() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		// TODO: must check the length of args
-		_, err := Config.Profile(args[0])
+
+		cfg, err := configFile.Read()
+		if err != nil {
+			return err
+		}
+
+		_, err = cfg.Profile(args[0])
 		if err != nil {
 			return err
 		}
@@ -17,21 +24,22 @@ func Arg0NotExistingProfile() cobra.PositionalArgs {
 	}
 }
 
-func Arg0ExistingProfile() cobra.PositionalArgs {
+// arg0ExistingProfile ensure arg for profile name is not existing in the profiles
+func arg0ExistingProfile() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		//TODO: what was this? lol
-		// profiles := configProfiles
-		// if profiles == nil || len(profiles.AllKeys()) == 0 {
-		// 	return nil
-		// }
-		if p, _ := Config.Profile(args[0]); p != nil {
+		cfg, err := configFile.Read()
+		if err != nil {
+			return err
+		}
+		if p, _ := cfg.Profile(args[0]); p != nil {
 			return fmt.Errorf("%v is existing already", args[0])
 		}
 		return nil
 	}
 }
 
-func Arg0AsProfileName() cobra.PositionalArgs {
+// arg0AsProfileName ensure to receive only 1 args as profile name
+func arg0AsProfileName() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("please specify the profile name")
@@ -43,10 +51,11 @@ func Arg0AsProfileName() cobra.PositionalArgs {
 	}
 }
 
-// ValidArgsProfileList is for auto complete
-var ValidArgsProfileList = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+// validArgsProfileList is for auto complete
+var validArgsProfileList = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return Config.Profiles.ProfileNames(), cobra.ShellCompDirectiveNoFileComp
+	cfg, _ := configFile.Read()
+	return cfg.ProfileNames(), cobra.ShellCompDirectiveNoFileComp
 }

@@ -28,10 +28,14 @@ func listCommand() *cobra.Command {
 		SilenceUsage: true,
 		Example:      cmdExampleList(),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := configFile.Read()
+			if err != nil {
+				return err
+			}
 
 			// print profiles.
-			for _, p := range Config.Profiles.ProfileNames() {
-				if p == Config.Default {
+			for _, p := range cfg.ProfileNames() {
+				if p == cfg.Default {
 					// mark default profile with * and green
 					color.Green("* %s", p)
 				} else {

@@ -28,14 +28,19 @@ func startCommand() *cobra.Command {
 		Short:             "Start new shell session with environment variable profile",
 		SilenceUsage:      true,
 		Example:           cmdExampleStart(),
-		ValidArgsFunction: ValidArgsProfileList,
+		ValidArgsFunction: validArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			profile, err := currentProfile(args)
+			cfg, err := configFile.Read()
+			if err != nil {
+				return err
+			}
+			profile, err := currentProfile(cfg, args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
 			}
+
 			// ignore error message from shell. let shell print out the errors
 			sc := shell.NewShellCommand()
 			sc.StartShell(profile.Env, profile.Name)

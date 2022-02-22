@@ -3,9 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/sunggun-yu/envp/internal/config"
 )
 
@@ -38,13 +36,17 @@ func editCommand() *cobra.Command {
 		SilenceUsage: true,
 		Example:      cmdExampleEdit(),
 		Args: cobra.MatchAll(
-			Arg0AsProfileName(),
-			Arg0NotExistingProfile(),
+			arg0AsProfileName(),
+			arg0NotExistingProfile(),
 		),
-		ValidArgsFunction: ValidArgsProfileList,
+		ValidArgsFunction: validArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			profile, err := currentProfile(args)
+			cfg, err := configFile.Read()
+			if err != nil {
+				return err
+			}
+			profile, err := currentProfile(cfg, args)
 			if err != nil {
 				checkErrorAndPrintCommandExample(cmd, err)
 				return err
@@ -68,29 +70,12 @@ func editCommand() *cobra.Command {
 				profile.Env = config.MapToEnv(menv)
 			}
 
-			// wait for the config file update and verify profile is added or not
-			rc := make(chan error, 1)
-
-			// it's being watched in root initConfig - viper.WatchConfig()
-			go viper.OnConfigChange(func(e fsnotify.Event) {
-				if p, _ := Config.Profile(profile.Name); p == nil {
-					rc <- fmt.Errorf("profile %v not updated", profile.Name)
-					return
-				}
-				fmt.Println("Profile", profile.Name, "updated successfully:", e.Name)
-				rc <- nil
-			})
-
-			// update config and save
-			if err := updateAndSaveConfigFile(&Config, viper.GetViper()); err != nil {
+			if err := configFile.Save(); err != nil {
 				return err
 			}
 
-			// wait for profile validation channel
-			errOnChange := <-rc
-			if errOnChange != nil {
-				return errOnChange
-			}
+			fmt.Println("Profile", profile.Name, "updated successfully")
+
 			return nil
 		},
 	}

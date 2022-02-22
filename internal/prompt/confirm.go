@@ -37,6 +37,7 @@ func (p *promptConfirm) run() bool {
 	return false
 }
 
+// PromptConfirm ask confirmation of y/N
 func PromptConfirm(label string) bool {
 	prom := &promptConfirm{
 		label: label,
