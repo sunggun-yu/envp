@@ -65,7 +65,7 @@ func (c *ConfigFile) initConfigFile() error {
 	}
 
 	// open config file. create if not exist. and set file permission as 0600
-	f, err := os.OpenFile(c.name, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0600)
+	f, err := os.OpenFile(c.name, os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		return err
 	}

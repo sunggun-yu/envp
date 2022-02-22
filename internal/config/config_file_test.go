@@ -181,4 +181,25 @@ var _ = Describe("NewConfigFile", func() {
 			os.Setenv("HOME", originalHome)
 		})
 	})
+
+	When("config file is already existing", func() {
+		testFile := fmt.Sprintf("%v.yaml", GinkgoRandomSeed())
+		defer os.Remove(testFile) // remove file after testing
+
+		// copy test config file
+		original, _ := ioutil.ReadFile("../../testdata/config.yaml")
+		ioutil.WriteFile(testFile, original, 0644)
+
+		_, err := NewConfigFile(testFile)
+
+		It("should not return error", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should not change existing config content", func() {
+			actual, err := ioutil.ReadFile(testFile)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(actual).To(Equal(original))
+		})
+	})
 })
