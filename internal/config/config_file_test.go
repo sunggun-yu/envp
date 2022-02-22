@@ -183,12 +183,10 @@ var _ = Describe("NewConfigFile", func() {
 	})
 
 	When("config file is already existing", func() {
-		testFile := fmt.Sprintf("%v.yaml", GinkgoRandomSeed())
-		defer os.Remove(testFile) // remove file after testing
+		testFile := "../../testdata/config.yaml"
 
 		// copy test config file
 		original, _ := ioutil.ReadFile("../../testdata/config.yaml")
-		ioutil.WriteFile(testFile, original, 0644)
 
 		_, err := NewConfigFile(testFile)
 
