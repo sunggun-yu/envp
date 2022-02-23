@@ -13,18 +13,11 @@ import (
 
 var _ = Describe("Use", func() {
 
-	// setup test env
-	var stdout, stderr bytes.Buffer
-	var cmd *cobra.Command
-	var testConfigFile string
+	var (
+		testConfigFile string
+	)
 
 	BeforeEach(func() {
-		// use command
-		cmd = useCommand()
-		cmd.SetOut(&stdout)
-		cmd.SetErr(&stderr)
-		cmd.SetArgs([]string{})
-
 		// prepare test config file before each test
 		testConfigFile = fmt.Sprintf("%v.yaml", GinkgoRandomSeed())
 		configFileName = testConfigFile
@@ -35,45 +28,153 @@ var _ = Describe("Use", func() {
 	AfterEach(func() {
 		// delete test config file before each test - reset
 		os.Remove(testConfigFile)
-		cmd.SetArgs([]string{})
 	})
 
-	When("specify profile name that is existing", func() {
-		It("should not return error", func() {
-			cmd.SetArgs([]string{"lab.cluster2"})
-			err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(stderr.String()).To(BeEmpty())
+	When("run use command without specifying profile name", func() {
+		// setup test env
+		var (
+			stdout, stderr bytes.Buffer
+			cmd            *cobra.Command
+		)
+
+		BeforeEach(func() {
+			// use command
+			cmd = useCommand()
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
+			cmd.SetArgs(make([]string, 0))
+		})
+
+		When("specify no profile name", func() {
+			var (
+				err error
+			)
+
+			JustBeforeEach(func() {
+				cmd.SetArgs(make([]string, 0))
+				err = cmd.Execute()
+			})
+
+			It("should return error", func() {
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("should print out error message", func() {
+				Expect(stderr.String()).NotTo(BeEmpty())
+			})
 		})
 	})
 
-	When("specify default profile name as arg", func() {
+	When("run use command with specifying profile name", func() {
+		// setup test env
+		var (
+			stdout, stderr bytes.Buffer
+			cmd            *cobra.Command
+		)
+
+		BeforeEach(func() {
+			// use command
+			cmd = useCommand()
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
+			cmd.SetArgs(make([]string, 0))
+		})
+
+		When("specify profile name that is existing", func() {
+			var (
+				err error
+			)
+
+			JustBeforeEach(func() {
+				cmd.SetArgs([]string{"lab.cluster2"})
+				err = cmd.Execute()
+			})
+
+			It("should not return error", func() {
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("should print out success message", func() {
+				Expect(stdout.String()).ShouldNot(BeEmpty())
+			})
+
+			It("should not be error message", func() {
+				Expect(stderr.String()).Should(BeEmpty())
+			})
+		})
+
+		When("specify default profile name as arg", func() {
+			var (
+				err error
+			)
+
+			JustBeforeEach(func() {
+				cmd.SetArgs([]string{"docker"})
+				err = cmd.Execute()
+			})
+
+			It("should not return error", func() {
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("should print out success message", func() {
+				Expect(stdout.String()).ShouldNot(BeEmpty())
+			})
+
+			It("should not be error message", func() {
+				Expect(stderr.String()).Should(BeEmpty())
+			})
+		})
+
+		When("specify profile name that is not existing", func() {
+			var (
+				err error
+			)
+
+			JustBeforeEach(func() {
+				cmd.SetArgs([]string{fmt.Sprintf("non-existing-profile-name-%v", GinkgoRandomSeed())})
+				err = cmd.Execute()
+			})
+
+			It("should return error", func() {
+				Expect(err).Should(HaveOccurred())
+			})
+
+			It("should print out error message", func() {
+				Expect(stderr.String()).ShouldNot(BeEmpty())
+				fmt.Println(stderr.String())
+			})
+		})
+	})
+
+	When("run use command with specifying multiple profile name", func() {
+		// setup test env
+		var (
+			stdout, stderr bytes.Buffer
+			cmd            *cobra.Command
+			err            error
+		)
+
+		BeforeEach(func() {
+			// use command
+			cmd = useCommand()
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
+			cmd.SetArgs([]string{"lab.cluster1", "lab.cluster2"})
+		})
+
+		JustBeforeEach(func() {
+			cmd.SetArgs([]string{"lab.cluster1", "lab.cluster2"})
+			err = cmd.Execute()
+		})
+
 		It("should return error", func() {
-			cmd.SetArgs([]string{"docker"})
-			err := cmd.Execute()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(stdout.String()).NotTo(BeEmpty())
-			Expect(stderr.String()).To(BeEmpty())
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should print out error message", func() {
+			Expect(stderr.String()).ShouldNot(BeEmpty())
 			fmt.Println(stderr.String())
 		})
 	})
-
-	When("specify profile name that is not existing", func() {
-		It("should return error", func() {
-			cmd.SetArgs([]string{fmt.Sprintf("non-existing-profile-name-%v", GinkgoRandomSeed())})
-			err := cmd.Execute()
-			Expect(err).To(HaveOccurred())
-			Expect(stderr.String()).NotTo(BeEmpty())
-			fmt.Println(stderr.String())
-		})
-	})
-
-	When("specify no profile name", func() {
-		It("should return error", func() {
-			err := cmd.Execute()
-			Expect(err).To(HaveOccurred())
-			Expect(stderr.String()).NotTo(BeEmpty())
-		})
-	})
-
 })
