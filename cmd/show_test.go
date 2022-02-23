@@ -109,4 +109,19 @@ var _ = Describe("Show", func() {
 			os.Remove(testFile)
 		})
 	})
+
+	When("execute the show command for specific profile but empty", func() {
+
+		JustBeforeEach(func() {
+			configFileName = "../testdata/config.yaml"
+			cmd.SetArgs([]string{""})
+			err = cmd.Execute()
+			fmt.Println(stdout.String())
+		})
+
+		It("should return error", func() {
+			Expect(err).To(HaveOccurred())
+			Expect(stderr.String()).NotTo(BeEmpty())
+		})
+	})
 })
