@@ -1,9 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -26,9 +23,12 @@ func cmdExampleUse() string {
 // add command
 func useCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:               "use profile-name",
-		Short:             "Set default environment variable profile",
-		SilenceUsage:      true,
+		Use:          "use profile-name",
+		Short:        "Set default environment variable profile",
+		SilenceUsage: true,
+		Args: cobra.MatchAll(
+			arg0AsProfileName(),
+		),
 		Example:           cmdExampleUse(),
 		ValidArgsFunction: validArgsProfileList,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -44,8 +44,8 @@ func useCommand() *cobra.Command {
 			}
 			// just exit if selected profile is already default
 			if profile.IsDefault {
-				fmt.Println("Profile", profile.Name, "is alreday set as default")
-				os.Exit(0)
+				cmd.Println("Profile", profile.Name, "is alreday set as default")
+				return nil
 			}
 
 			// set selected profile as default
@@ -55,7 +55,7 @@ func useCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Println("Default profile is set to", color.GreenString(cfg.Default))
+			cmd.Println("Default profile is set to", color.GreenString(cfg.Default))
 
 			return nil
 		},

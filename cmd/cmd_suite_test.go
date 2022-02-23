@@ -1,4 +1,4 @@
-package cmd_test
+package cmd
 
 import (
 	"testing"
@@ -11,3 +11,8 @@ func TestCmd(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Cmd Suite")
 }
+
+// set configFileName as test data
+var _ = BeforeSuite(func() {
+	configFileName = "../testdata/config.yaml"
+})
