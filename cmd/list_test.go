@@ -6,7 +6,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sunggun-yu/envp/internal/config"
 )
 
 var _ = Describe("List", func() {
@@ -20,7 +19,7 @@ var _ = Describe("List", func() {
 	cmd.SetArgs([]string{})
 
 	When("execute the list command", func() {
-		configFile, _ = config.NewConfigFile("../testdata/config.yaml")
+		configFileName = "../testdata/config.yaml"
 
 		err := cmd.Execute()
 		fmt.Println(stdout.String())
