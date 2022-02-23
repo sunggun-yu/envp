@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -28,6 +26,8 @@ func listCommand() *cobra.Command {
 		SilenceUsage: true,
 		Example:      cmdExampleList(),
 		RunE: func(cmd *cobra.Command, args []string) error {
+
+			// read config from config file
 			cfg, err := configFile.Read()
 			if err != nil {
 				return err
@@ -37,9 +37,9 @@ func listCommand() *cobra.Command {
 			for _, p := range cfg.ProfileNames() {
 				if p == cfg.Default {
 					// mark default profile with * and green
-					color.Green("* %s", p)
+					cmd.Println(color.GreenString("* %s", p))
 				} else {
-					fmt.Println(" ", p)
+					cmd.Println(" ", p)
 				}
 			}
 			return nil
