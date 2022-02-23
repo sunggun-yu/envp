@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/sunggun-yu/envp/internal/config"
 )
@@ -22,8 +20,8 @@ func currentProfile(cfg *config.Config, args []string) (profile *config.NamedPro
 
 // print command example
 func printExample(cmd *cobra.Command) {
-	fmt.Println("Example:")
-	fmt.Println(cmd.Example)
+	cmd.Println("Example:")
+	cmd.Println(cmd.Example)
 }
 
 // check the error type and print out command help for specific error types

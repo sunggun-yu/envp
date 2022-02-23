@@ -47,18 +47,18 @@ func showCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Println("# profile:", profile.Name)
+			cmd.Println("# profile:", profile.Name)
 			if flags.export {
-				fmt.Println("# you can export env vars of profile with following command")
-				fmt.Println("# eval $(envp show --export)")
-				fmt.Println("# eval $(envp show profile-name --export)")
-				fmt.Println("")
+				cmd.Println("# you can export env vars of profile with following command")
+				cmd.Println("# eval $(envp show --export)")
+				cmd.Println("# eval $(envp show profile-name --export)")
+				cmd.Println("")
 			}
 			for _, e := range profile.Env {
 				if flags.export {
-					fmt.Print("export ")
+					cmd.Print("export ")
 				}
-				fmt.Println(fmt.Sprint(e.Name, "=", e.Value))
+				cmd.Println(fmt.Sprint(e.Name, "=", e.Value))
 			}
 			return nil
 		},
