@@ -37,12 +37,6 @@ func (p *PromptConfirm) run() bool {
 	return false
 }
 
-// // SetOut sets the destination for usage messages.
-// // If newOut is nil, os.Stdout is used.
-// func (p *PromptConfirm) SetOut(out io.Writer) {
-// 	p.outWriter = nopWriteCloser{out}
-// }
-
 // SetIn sets the source for input data
 // If newIn is nil, os.Stdin is used.
 func (p *PromptConfirm) SetIn(in io.Reader) {
@@ -53,13 +47,3 @@ func (p *PromptConfirm) SetIn(in io.Reader) {
 func (p *PromptConfirm) Prompt() bool {
 	return p.run()
 }
-
-// // nopWriteCloser
-// type nopWriteCloser struct {
-// 	io.Writer
-// }
-
-// // Close is method to implemnt io.WriteCloser
-// func (m nopWriteCloser) Close() error {
-// 	return nil
-// }
