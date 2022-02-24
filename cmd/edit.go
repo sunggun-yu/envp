@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/sunggun-yu/envp/internal/config"
 )
@@ -74,7 +72,7 @@ func editCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Println("Profile", profile.Name, "updated successfully")
+			cmd.Println("Profile", profile.Name, "updated successfully")
 
 			return nil
 		},
@@ -82,7 +80,6 @@ func editCommand() *cobra.Command {
 
 	cmd.Flags().StringVarP(&flags.desc, "desc", "d", "", "description of profile")
 	cmd.Flags().StringArrayVarP(&flags.env, "env", "e", []string{}, "'VAR=VAL' format of string")
-	cmd.MarkFlagRequired("env")
 
 	return cmd
 }
