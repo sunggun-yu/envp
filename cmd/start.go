@@ -6,7 +6,8 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(startCommand())
+	// run with default shell command
+	rootCmd.AddCommand(startCommand(shell.NewShellCommand()))
 }
 
 // example of delete command
@@ -21,7 +22,7 @@ func cmdExampleStart() string {
 }
 
 // deleteCommand delete/remove environment variable profile and it's envionment variables from the config file
-func startCommand() *cobra.Command {
+func startCommand(sh *shell.ShellCommand) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:               "start profile-name",
@@ -42,8 +43,7 @@ func startCommand() *cobra.Command {
 			}
 
 			// ignore error message from shell. let shell print out the errors
-			sc := shell.NewShellCommand()
-			sc.StartShell(profile.Env, profile.Name)
+			sh.StartShell(profile.Env, profile.Name)
 
 			return nil
 		},
