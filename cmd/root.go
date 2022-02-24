@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	configFile     *config.ConfigFile                 // ConfigFile instance that is shared across the sub-commands
-	configFileName = "$HOME/.config/envp/config.yaml" // config file path
-	rootCmd        = rootCommand()                    // root command
+	configFile     *config.ConfigFile                     // ConfigFile instance that is shared across the sub-commands
+	configFileName = "$HOME/.config/envp/config.yaml"     // config file path
+	rootCmd        = rootCommand(shell.NewShellCommand()) // root command with default setup of shell command
 )
 
 // init
@@ -57,7 +57,7 @@ func cmdExampleRoot() string {
 }
 
 // rootCommand sets environment variable and execute command line
-func rootCommand() *cobra.Command {
+func rootCommand(sh *shell.ShellCommand) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:               "envp profile-name [flags] -- [command line to execute, e.g. kubectl]",
@@ -111,8 +111,7 @@ func rootCommand() *cobra.Command {
 			}
 
 			// Execute command
-			sc := shell.NewShellCommand()
-			if err := sc.Execute(command, profile.Env, profile.Name); err != nil {
+			if err := sh.Execute(command, profile.Env, profile.Name); err != nil {
 				return err
 			}
 			return nil
