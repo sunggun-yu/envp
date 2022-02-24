@@ -9,170 +9,120 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
+	"github.com/sunggun-yu/envp/internal/config"
 )
 
 var _ = Describe("Use", func() {
 
 	var (
-		testConfigFile string
+		args           []string       // args to pass to command
+		testConfigFile string         // test config file path
+		stdout, stderr bytes.Buffer   // stdout and stderr
+		cmd            *cobra.Command // command
+		err            error          // error
+		cfg            *config.Config // config instance
+		copy           bool           // whether copy valid config file as test file or not
 	)
 
+	// BeforeEach prepare cmd and copy of test config file
 	BeforeEach(func() {
+		// prepare command
+		args = []string{}   // init args
+		cmd = useCommand()  // init command
+		cmd.SetOut(&stdout) // set stdout
+		cmd.SetErr(&stderr) // set stderr
+
 		// prepare test config file before each test
-		testConfigFile = fmt.Sprintf("%v.yaml", GinkgoRandomSeed())
-		configFileName = testConfigFile
-		oiginal, _ := ioutil.ReadFile("../testdata/config.yaml")
-		ioutil.WriteFile(testConfigFile, oiginal, 0644)
+		testConfigFile = fmt.Sprintf("%v.yaml", GinkgoRandomSeed()) // set random config file
+		configFileName = testConfigFile                             // set random config file as configFileName. so initConfig will initiate config
+		copy = true                                                 // copy valid test config file as default
+
+		// delete test config file
+		DeferCleanup(func() {
+			os.Remove(testConfigFile) // remove test config file after test case
+		})
 	})
 
+	// AfterEach reset the stdout and stderr
 	AfterEach(func() {
-		// delete test config file before each test - reset
-		os.Remove(testConfigFile)
+		stdout.Reset() // reset stdout after test case. so the last test case result will be cleared
+		stderr.Reset() // reset stderr after test case. so the last test case result will be cleared
 	})
 
-	When("run use command without specifying profile name", func() {
-		// setup test env
-		var (
-			stdout, stderr bytes.Buffer
-			cmd            *cobra.Command
-		)
+	// it runs right before the It
+	JustBeforeEach(func() {
 
+		// copy if copy is true. otherwise it will be fresh empty config file
+		if copy {
+			oiginal, _ := ioutil.ReadFile("../testdata/config.yaml")
+			ioutil.WriteFile(testConfigFile, oiginal, 0644)
+		}
+
+		cmd.SetArgs(args)          // set the arg for each test case
+		err = cmd.Execute()        // execute the command
+		cfg, _ = configFile.Read() //  set the config instance after executing command as result
+	})
+
+	When("specifying no profile name", func() {
 		BeforeEach(func() {
-			// use command
-			cmd = useCommand()
-			cmd.SetOut(&stdout)
-			cmd.SetErr(&stderr)
-			cmd.SetArgs(make([]string, 0))
+			args = []string{}
 		})
-
-		When("specify no profile name", func() {
-			var (
-				err error
-			)
-
-			JustBeforeEach(func() {
-				cmd.SetArgs(make([]string, 0))
-				err = cmd.Execute()
-			})
-
-			It("should return error", func() {
-				Expect(err).To(HaveOccurred())
-			})
-
-			It("should print out error message", func() {
-				Expect(stderr.String()).NotTo(BeEmpty())
-			})
+		It("should be error and print out error message", func() {
+			Expect(err).To(HaveOccurred())
+			Expect(stderr.String()).NotTo(BeEmpty())
 		})
 	})
 
-	When("run use command with specifying profile name", func() {
-		// setup test env
-		var (
-			stdout, stderr bytes.Buffer
-			cmd            *cobra.Command
-		)
+	When("specify profile name that is existing", func() {
+
+		profileName := "lab.cluster2"
 
 		BeforeEach(func() {
-			// use command
-			cmd = useCommand()
-			cmd.SetOut(&stdout)
-			cmd.SetErr(&stderr)
-			cmd.SetArgs(make([]string, 0))
+			args = append(args, profileName)
+		})
+		It("should not error and print out success message", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(stdout.String()).ShouldNot(BeEmpty())
+			Expect(stderr.String()).Should(BeEmpty())
 		})
 
-		When("specify profile name that is existing", func() {
-			var (
-				err error
-			)
-
-			JustBeforeEach(func() {
-				cmd.SetArgs([]string{"lab.cluster2"})
-				err = cmd.Execute()
-			})
-
-			It("should not return error", func() {
-				Expect(err).ShouldNot(HaveOccurred())
-			})
-
-			It("should print out success message", func() {
-				Expect(stdout.String()).ShouldNot(BeEmpty())
-			})
-
-			It("should not be error message", func() {
-				Expect(stderr.String()).Should(BeEmpty())
-			})
+		It("should change the default profile of config", func() {
+			d, err := cfg.DefaultProfile()
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(d.Name).Should(Equal(profileName))
 		})
+	})
 
-		When("specify default profile name as arg", func() {
-			var (
-				err error
-			)
-
-			JustBeforeEach(func() {
-				cmd.SetArgs([]string{"docker"})
-				err = cmd.Execute()
-			})
-
-			It("should not return error", func() {
-				Expect(err).ShouldNot(HaveOccurred())
-			})
-
-			It("should print out success message", func() {
-				Expect(stdout.String()).ShouldNot(BeEmpty())
-			})
-
-			It("should not be error message", func() {
-				Expect(stderr.String()).Should(BeEmpty())
-			})
+	When("specify default profile name as arg", func() {
+		BeforeEach(func() {
+			args = append(args, "docker")
 		})
+		It("should not error and print out success message", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(stdout.String()).ShouldNot(BeEmpty())
+			Expect(stderr.String()).Should(BeEmpty())
+		})
+	})
 
-		When("specify profile name that is not existing", func() {
-			var (
-				err error
-			)
-
-			JustBeforeEach(func() {
-				cmd.SetArgs([]string{fmt.Sprintf("non-existing-profile-name-%v", GinkgoRandomSeed())})
-				err = cmd.Execute()
-			})
-
-			It("should return error", func() {
-				Expect(err).Should(HaveOccurred())
-			})
-
-			It("should print out error message", func() {
-				Expect(stderr.String()).ShouldNot(BeEmpty())
-				fmt.Println(stderr.String())
-			})
+	When("specify profile name that is not existing", func() {
+		profileName := "some-profile-name"
+		BeforeEach(func() {
+			copy = false
+			args = append(args, profileName)
+		})
+		It("should be error and print out error message", func() {
+			Expect(err).Should(HaveOccurred())
+			Expect(stderr.String()).ShouldNot(BeEmpty())
+			fmt.Println(stderr.String())
 		})
 	})
 
 	When("run use command with specifying multiple profile name", func() {
-		// setup test env
-		var (
-			stdout, stderr bytes.Buffer
-			cmd            *cobra.Command
-			err            error
-		)
-
 		BeforeEach(func() {
-			// use command
-			cmd = useCommand()
-			cmd.SetOut(&stdout)
-			cmd.SetErr(&stderr)
-			cmd.SetArgs([]string{"lab.cluster1", "lab.cluster2"})
+			args = append(args, "lab.cluster1", "lab.cluster2")
 		})
-
-		JustBeforeEach(func() {
-			cmd.SetArgs([]string{"lab.cluster1", "lab.cluster2"})
-			err = cmd.Execute()
-		})
-
-		It("should return error", func() {
+		It("should be error and print out error message", func() {
 			Expect(err).Should(HaveOccurred())
-		})
-
-		It("should print out error message", func() {
 			Expect(stderr.String()).ShouldNot(BeEmpty())
 			fmt.Println(stderr.String())
 		})
