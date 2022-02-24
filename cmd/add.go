@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/sunggun-yu/envp/internal/config"
 )
@@ -71,7 +69,7 @@ func addCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Println("Profile", name, "added successfully")
+			cmd.Println("Profile", name, "added successfully")
 
 			return nil
 		},
