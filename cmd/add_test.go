@@ -33,9 +33,9 @@ var _ = Describe("Add Command", func() {
 		cmd.SetErr(&stderr) // set stderr
 
 		// prepare test config file before each test
-		testConfigFile = fmt.Sprintf("%v.yaml", GinkgoRandomSeed()) // set random config file
-		configFileName = testConfigFile                             // set random config file as configFileName. so initConfig will initiate config
-		copy = true                                                 // copy valid test config file as default
+		testConfigFile = fmt.Sprintf("add-%v.yaml", GinkgoRandomSeed()) // set random config file
+		configFileName = testConfigFile                                 // set random config file as configFileName. so initConfig will initiate config
+		copy = true                                                     // copy valid test config file as default
 
 		// delete test config file
 		DeferCleanup(func() {

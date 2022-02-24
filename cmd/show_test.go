@@ -3,123 +3,133 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
+	"github.com/sunggun-yu/envp/internal/config"
 )
 
 var _ = Describe("Show", func() {
+	var (
+		args           []string       // args to pass to command
+		testConfigFile string         // test config file path
+		stdout, stderr bytes.Buffer   // stdout and stderr
+		cmd            *cobra.Command // command
+		err            error          // error
+		cfg            *config.Config // config instance
+		copy           bool           // whether copy valid config file as test file or not
+	)
 
-	// setup test env
-	var stdout, stderr bytes.Buffer
-	var cmd *cobra.Command
-	var err error
-
+	// BeforeEach prepare cmd and copy of test config file
 	BeforeEach(func() {
-		cmd = showCommand()
-		cmd.SetOut(&stdout)
-		cmd.SetErr(&stderr)
+		// prepare command
+		args = []string{}   // init args
+		cmd = showCommand() // init command
+		cmd.SetOut(&stdout) // set stdout
+		cmd.SetErr(&stderr) // set stderr
+
+		// prepare test config file before each test
+		testConfigFile = fmt.Sprintf("show-%v.yaml", GinkgoRandomSeed()) // set random config file
+		configFileName = testConfigFile                                  // set random config file as configFileName. so initConfig will initiate config
+		copy = true                                                      // copy valid test config file as default
+
+		// delete test config file
+		DeferCleanup(func() {
+			os.Remove(testConfigFile) // remove test config file after test case
+		})
+	})
+
+	// AfterEach reset the stdout and stderr
+	AfterEach(func() {
+		stdout.Reset() // reset stdout after test case. so the last test case result will be cleared
+		stderr.Reset() // reset stderr after test case. so the last test case result will be cleared
+	})
+
+	// it runs right before the It
+	JustBeforeEach(func() {
+
+		// copy if copy is true. otherwise it will be fresh empty config file
+		if copy {
+			oiginal, _ := ioutil.ReadFile("../testdata/config.yaml")
+			ioutil.WriteFile(testConfigFile, oiginal, 0644)
+		}
+
+		cmd.SetArgs(args)          // set the arg for each test case
+		err = cmd.Execute()        // execute the command
+		cfg, _ = configFile.Read() //  set the config instance after executing command as result
 	})
 
 	When("execute the show command for default profile", func() {
-
-		JustBeforeEach(func() {
-			configFileName = "../testdata/config.yaml"
-			cmd.SetArgs([]string{})
-			err = cmd.Execute()
-			fmt.Println(stdout.String())
+		BeforeEach(func() {
+			args = []string{}
 		})
-
 		It("should not return error", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stderr.String()).To(BeEmpty())
 		})
 
-		It("should print out environment variable sets", func() {
-			Expect(stdout.String()).ToNot(BeEmpty())
-			Expect(stdout.String()).To(ContainSubstring("DOCKER_HOST=ssh://meow@192.168.1.40"))
+		It("should print out environment variable sets of default profile", func() {
+			p, _ := cfg.DefaultProfile()
+			for _, e := range p.Env {
+				Expect(stdout.String()).To(ContainSubstring(e.String()))
+			}
 		})
 	})
 
-	When("execute the show command for specific profile", func() {
-
-		JustBeforeEach(func() {
-			configFileName = "../testdata/config.yaml"
-			cmd.SetArgs([]string{"lab.cluster1"})
-			err = cmd.Execute()
-			fmt.Println(stdout.String())
+	When("specify profile that is existing", func() {
+		profileName := "lab.cluster1"
+		BeforeEach(func() {
+			args = append(args, profileName)
 		})
-
 		It("should not return error", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stderr.String()).To(BeEmpty())
 		})
-
 		It("should print out environment variable sets", func() {
-			Expect(stdout.String()).ToNot(BeEmpty())
-			Expect(stdout.String()).To(ContainSubstring("lab-cluster1"))
+			p, _ := cfg.Profile(profileName)
+			for _, e := range p.Env {
+				Expect(stdout.String()).To(ContainSubstring(e.String()))
+			}
 		})
 	})
 
 	When("execute the show command with export flag", func() {
-
-		JustBeforeEach(func() {
-			configFileName = "../testdata/config.yaml"
-			cmd.SetArgs([]string{"--export"})
-			err = cmd.Execute()
-			fmt.Println(stdout.String())
+		profileName := "lab.cluster1"
+		BeforeEach(func() {
+			args = append(args, profileName, "--export")
 		})
-
 		It("should not return error", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stderr.String()).To(BeEmpty())
 		})
-
 		It("should print out environment variable sets", func() {
-			Expect(stdout.String()).ToNot(BeEmpty())
-			Expect(stdout.String()).To(ContainSubstring("DOCKER_HOST=ssh://meow@192.168.1.40"))
-		})
-
-		It("should print out environment variable sets with export command", func() {
-			Expect(stdout.String()).ToNot(BeEmpty())
-			Expect(stdout.String()).To(ContainSubstring("export DOCKER_HOST=ssh://meow@192.168.1.40"))
+			p, _ := cfg.Profile(profileName)
+			for _, e := range p.Env {
+				Expect(stdout.String()).To(ContainSubstring(fmt.Sprintf("export %s", e.String())))
+			}
 		})
 	})
 
-	When("execute the show command with empty default config", func() {
-
-		var testFile string
-
-		JustBeforeEach(func() {
-			testFile = fmt.Sprintf("../testdata/%v.yaml", GinkgoRandomSeed())
-			configFileName = testFile
-			cmd.SetArgs([]string{})
-			err = cmd.Execute()
-			fmt.Println(stdout.String())
+	When("default profile is empty", func() {
+		BeforeEach(func() {
+			copy = false
+			args = []string{}
 		})
-
-		It("should not return error and print out example", func() {
+		It("should be error", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(stderr.String()).NotTo(BeEmpty())
 		})
-
-		JustAfterEach(func() {
-			os.Remove(testFile)
-		})
 	})
 
-	When("execute the show command for specific profile but empty", func() {
-
-		JustBeforeEach(func() {
-			configFileName = "../testdata/config.yaml"
-			cmd.SetArgs([]string{""})
-			err = cmd.Execute()
-			fmt.Println(stdout.String())
+	When("profile name is empty string", func() {
+		BeforeEach(func() {
+			copy = false
+			args = []string{""}
 		})
-
-		It("should return error", func() {
+		It("should be error", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(stderr.String()).NotTo(BeEmpty())
 		})
