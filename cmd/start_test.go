@@ -13,7 +13,7 @@ import (
 	"github.com/sunggun-yu/envp/internal/shell"
 )
 
-var _ = Describe("Edit Command", func() {
+var _ = Describe("Start Command", func() {
 	var (
 		args                  []string       // args to pass to command
 		testConfigFile        string         // test config file path
