@@ -28,6 +28,9 @@ var _ = Describe("Edit Command", func() {
 	// BeforeEach prepare cmd and copy of test config file
 	BeforeEach(func() {
 
+		// should default shell for ci testing
+		os.Setenv("SHELL", "/bin/sh")
+
 		// prepare the shell command
 		sc := shell.NewShellCommand()
 		sc.Stdin = &stdin
