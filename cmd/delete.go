@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -45,20 +44,24 @@ func deleteCommand() *cobra.Command {
 			// set default="" if default profile is being deleted
 			if profile.IsDefault {
 				cfg.SetDefault("")
-				color.Yellow("WARN: You are deleting default profile '%s'. please set default profile once it is deleted", profile.Name)
+				cmd.Println(color.YellowString("WARN: You are deleting default profile '%s'. please set default profile once it is deleted", profile.Name))
 			}
 			// ask y/n decision before proceed delete
-			if prompt.PromptConfirm(fmt.Sprintf("Delete profile %s", color.RedString(profile.Name))) {
+			prompt := prompt.NewPromptConfirm(fmt.Sprintf("Delete profile %s", color.RedString(profile.Name)))
+			// set cmd's  in or stdin into prompt
+			prompt.SetIn(cmd.InOrStdin())
+			// prompt.SetOut(cmd.OutOrStdout())
+			if prompt.Prompt() {
 				// delete profile
 				cfg.DeleteProfile(profile.Name)
 			} else {
-				fmt.Println("Cancelled")
-				os.Exit(0)
+				cmd.Println("Cancelled")
+				return nil
 			}
 			if err := configFile.Save(); err != nil {
 				return err
 			}
-			fmt.Println("Profile", profile.Name, "deleted successfully")
+			cmd.Println("Profile", profile.Name, "deleted successfully")
 			return nil
 		},
 	}

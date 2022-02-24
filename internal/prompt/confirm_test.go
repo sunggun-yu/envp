@@ -5,11 +5,10 @@ import (
 	"io"
 	"strings"
 	"testing"
-
-	"github.com/manifoldco/promptui"
 )
 
 func TestPromptConfirm(t *testing.T) {
+	// var stdout bytes.Buffer
 
 	var testCase = func(input string) bool {
 
@@ -17,20 +16,15 @@ func TestPromptConfirm(t *testing.T) {
 		s := fmt.Sprintf("%s\n", input)
 		stringReader := strings.NewReader(s)
 		stringReadCloser := io.NopCloser(stringReader)
-		p := &promptui.Prompt{
-			Label:     "label",
-			IsConfirm: true,
-			IsVimMode: true,
-			Stdin:     stringReadCloser,
-		}
-		prom := promptConfirm{
-			prompt: p,
-		}
-		return prom.run()
+
+		prom := NewPromptConfirm("label")
+		prom.SetIn(stringReadCloser)
+		// prom.SetOut(bufio.NewWriter(&stdout))
+		return prom.Prompt()
 	}
 
 	t.Run("default should false", func(t *testing.T) {
-		if PromptConfirm("some message") {
+		if testCase("some message") {
 			t.Error("default should false")
 		}
 	})

@@ -1,31 +1,31 @@
 package prompt
 
 import (
+	"io"
 	"strings"
-	"sync"
 
 	"github.com/manifoldco/promptui"
 )
 
 // PromptYesOrNo prompts yes/no
-// TODO: how to test in code?
-type promptConfirm struct {
-	// got DATA RACE during test in github actions
-	m      sync.Mutex
+type PromptConfirm struct {
 	prompt *promptui.Prompt
 	label  string
 }
 
-func (p *promptConfirm) run() bool {
-	p.m.Lock()
-	defer p.m.Unlock()
-
-	if p.prompt == nil {
-		p.prompt = &promptui.Prompt{
-			Label:     p.label,
+// NewPromptConfirm
+func NewPromptConfirm(label string) PromptConfirm {
+	return PromptConfirm{
+		label: label,
+		prompt: &promptui.Prompt{
+			Label:     label,
 			IsConfirm: true,
-		}
+		},
 	}
+}
+
+// run the prompt
+func (p *PromptConfirm) run() bool {
 	a, _ := p.prompt.Run()
 	yeses := []string{"y", "yes", "yeah"}
 	// only consider yeses as true. others are false.
@@ -37,10 +37,29 @@ func (p *promptConfirm) run() bool {
 	return false
 }
 
-// PromptConfirm ask confirmation of y/N
-func PromptConfirm(label string) bool {
-	prom := &promptConfirm{
-		label: label,
-	}
-	return prom.run()
+// // SetOut sets the destination for usage messages.
+// // If newOut is nil, os.Stdout is used.
+// func (p *PromptConfirm) SetOut(out io.Writer) {
+// 	p.outWriter = nopWriteCloser{out}
+// }
+
+// SetIn sets the source for input data
+// If newIn is nil, os.Stdin is used.
+func (p *PromptConfirm) SetIn(in io.Reader) {
+	p.prompt.Stdin = io.NopCloser(in)
 }
+
+// PromptConfirm ask confirmation of y/N
+func (p *PromptConfirm) Prompt() bool {
+	return p.run()
+}
+
+// // nopWriteCloser
+// type nopWriteCloser struct {
+// 	io.Writer
+// }
+
+// // Close is method to implemnt io.WriteCloser
+// func (m nopWriteCloser) Close() error {
+// 	return nil
+// }
