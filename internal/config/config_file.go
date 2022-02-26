@@ -31,8 +31,8 @@ func NewConfigFile(name string) (*ConfigFile, error) {
 	if name == "" {
 		return nil, fmt.Errorf("empty config file name")
 	}
-	// ensure if file is exsiting. if not create directory and file
-	// expand and replace file path if it is refering home dir, `~`, `$HOME`
+	// ensure if file is existing. if not create directory and file
+	// expand and replace file path if it is referring home dir, `~`, `$HOME`
 	p, err := util.EnsureConfigFilePath(filepath.Dir(name))
 	if err != nil {
 		return nil, err

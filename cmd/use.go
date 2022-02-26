@@ -44,7 +44,7 @@ func useCommand() *cobra.Command {
 			}
 			// just exit if selected profile is already default
 			if profile.IsDefault {
-				cmd.Println("Profile", profile.Name, "is alreday set as default")
+				cmd.Println("Profile", profile.Name, "is already set as default")
 				return nil
 			}
 

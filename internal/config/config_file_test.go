@@ -39,7 +39,7 @@ func TestConfigFile(t *testing.T) {
 
 			assert.NoError(err, "error should not occurred on read operation")
 
-			c.SetDefault(strconv.Itoa(n)) // it may not guarentee the order
+			c.SetDefault(strconv.Itoa(n)) // it may not guarantee the order
 			c.SetProfile(fmt.Sprintf("hello.world-%v", n), Profile{
 				Desc: strconv.Itoa(n),
 				Env: Envs{
@@ -115,7 +115,7 @@ func TestRead(t *testing.T) {
 
 		cf.config = nil
 		_, err := cf.Read()
-		assert.Error(err, "should occurr error when have wrong format of config file")
+		assert.Error(err, "should occur error when have wrong format of config file")
 	})
 }
 
@@ -128,10 +128,10 @@ func TestWrite(t *testing.T) {
 		defer os.Remove(testFile) // remove file after testing
 		cf, _ := NewConfigFile(testFile)
 		err := cf.Save()
-		assert.Error(err, "should occurr error when have wrong format of config file")
+		assert.Error(err, "should occur error when have wrong format of config file")
 	})
 
-	t.Run("when have no permisson on config file", func(t *testing.T) {
+	t.Run("when have no permission on config file", func(t *testing.T) {
 		testFile := fmt.Sprintf("%v", GinkgoRandomSeed())
 		defer os.Remove(testFile) // remove file after testing
 		cf, _ := NewConfigFile(testFile)
@@ -139,7 +139,7 @@ func TestWrite(t *testing.T) {
 		// make it read-only
 		os.Chmod(testFile, 0400)
 		err := cf.Save()
-		assert.Error(err, "should occurr error when have wrong format of config file")
+		assert.Error(err, "should occur error when have wrong format of config file")
 	})
 }
 

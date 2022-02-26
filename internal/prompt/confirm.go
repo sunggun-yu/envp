@@ -7,13 +7,13 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-// PromptYesOrNo prompts yes/no
+// PromptConfirm prompts yes/no
 type PromptConfirm struct {
 	prompt *promptui.Prompt
 	label  string
 }
 
-// NewPromptConfirm
+// NewPromptConfirm create new PromptConfirm
 func NewPromptConfirm(label string) PromptConfirm {
 	return PromptConfirm{
 		label: label,
@@ -43,7 +43,7 @@ func (p *PromptConfirm) SetIn(in io.Reader) {
 	p.prompt.Stdin = io.NopCloser(in)
 }
 
-// PromptConfirm ask confirmation of y/N
+// Prompt ask confirmation of y/N
 func (p *PromptConfirm) Prompt() bool {
 	return p.run()
 }
