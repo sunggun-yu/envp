@@ -20,5 +20,5 @@ func main() {
 
 // Version returns version and build information. it will be injected from ldflags(goreleaser)
 func Version() string {
-	return fmt.Sprintf("envp %s, commit %s, built at %s", version, commit, date)
+	return fmt.Sprintf("%s, commit %s, built at %s", version, commit, date)
 }
