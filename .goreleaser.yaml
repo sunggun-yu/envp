@@ -1,10 +1,7 @@
 # This is an example .goreleaser.yml file with some sensible defaults.
 # Make sure to check the documentation at https://goreleaser.com
 
-env:
-  # actual binary file name that will be installed and used in end-user's local environment
-  # this env var will be used for binary build and homebrew formula for install binary
-  - BUILD_BIN_NAME=envp
+project_name: envp
 
 before:
   hooks:
@@ -15,7 +12,7 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
-    binary: "{{ .Env.BUILD_BIN_NAME }}"
+    binary: "{{ .ProjectName }}"
     goos:
       - linux
       - windows
@@ -61,6 +58,6 @@ brews:
     folder: Formula
     download_strategy: CurlDownloadStrategy
     install: |
-      bin.install "{{ .Env.BUILD_BIN_NAME }}"
+      bin.install "{{ .ProjectName }}"
     test: |
-      system "#{bin}/{{ .Env.BUILD_BIN_NAME }} -v"
+      system "#{bin}/{{ .ProjectName }} -v"
