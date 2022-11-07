@@ -6,7 +6,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/onsi/ginkgo/v2 v2.4.0
-	github.com/onsi/gomega v1.22.1
+	github.com/onsi/gomega v1.24.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -16,7 +16,7 @@ require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
