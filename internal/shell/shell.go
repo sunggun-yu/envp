@@ -45,7 +45,6 @@ func (s *ShellCommand) StartShell(env config.Envs, profile string) error {
 	// TODO: do some template
 	// print start of session message
 	s.Stdout.Write([]byte(fmt.Sprintln(color.GreenString("Starting ENVP session..."), color.RedString(profile))))
-	s.Stdout.Write([]byte(fmt.Sprintln(color.CyanString(env.String()))))
 	s.Stdout.Write([]byte(fmt.Sprintln("> press ctrl+d or type exit to close session")))
 
 	// execute the command
