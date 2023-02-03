@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/fatih/color v1.14.1
 	github.com/manifoldco/promptui v0.9.0
-	github.com/onsi/ginkgo/v2 v2.7.0
+	github.com/onsi/ginkgo/v2 v2.8.0
 	github.com/onsi/gomega v1.26.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
