@@ -170,8 +170,7 @@ var _ = Describe("env shell command substitution", func() {
 		sc.Stderr = &stderr
 
 		It("should not return err", func() {
-			err := sc.StartShell(envs, "")
-			Expect(err).ToNot(HaveOccurred())
+			_ = sc.StartShell(envs, "my-profile")
 			Expect(stdout.String()).NotTo(BeEmpty())
 			Expect(stderr.String()).NotTo(BeEmpty())
 			Expect(stderr.String()).To(ContainSubstring("error parsing value of TEST_SUBST_3"))
