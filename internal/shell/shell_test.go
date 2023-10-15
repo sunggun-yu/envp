@@ -143,11 +143,6 @@ var _ = Describe("env shell command substitution", func() {
 	envs.AddEnv("TEST_SUBST_3", "$(this-is-error)")
 	errs := parseEnvs(envs)
 
-	var stdout, stderr bytes.Buffer
-	sc := NewShellCommand()
-	sc.Stdout = &stdout
-	sc.Stderr = &stderr
-
 	When("has $() in the value", func() {
 		It("should perform shell command substitution", func() {
 			Expect(envs.Strings()).To(ContainElement("TEST_SUBST_1=hello"))
@@ -169,8 +164,13 @@ var _ = Describe("env shell command substitution", func() {
 			Expect(envs.Strings()).To(ContainElement("TEST_SUBST_3=$(this-is-error)"))
 		})
 
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
 		It("should show parsing error message", func() {
-			err := sc.StartShell(envs, "my-profile")
+			err := sc.Execute([]string{"echo"}, envs, "my-profile")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stdout.String()).NotTo(BeEmpty())
 			Expect(stderr.String()).NotTo(BeEmpty())
