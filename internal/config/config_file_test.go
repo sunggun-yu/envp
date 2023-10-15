@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -14,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// perform test whithin single process but multi thread operation
+// perform test within single process but multi thread operation
 func TestConfigFile(t *testing.T) {
 
 	// assert
@@ -111,7 +110,7 @@ func TestRead(t *testing.T) {
       - wrong
       - 1
 		`
-		ioutil.WriteFile(testFile, []byte(wrongData), 0600)
+		os.WriteFile(testFile, []byte(wrongData), 0600)
 
 		cf.config = nil
 		_, err := cf.Read()
@@ -147,7 +146,7 @@ func TestWrite(t *testing.T) {
 // Ginkgo test suite
 // ---------------------------------------------------------------------------
 var _ = Describe("NewConfigFile", func() {
-	When("set exisiting directory as config file", func() {
+	When("set existing directory as config file", func() {
 		testFile := fmt.Sprintf("/tmp/%v/%v", GinkgoRandomSeed(), GinkgoRandomSeed())
 		testDir := filepath.Dir(testFile)
 		os.Create(testDir)
@@ -186,7 +185,7 @@ var _ = Describe("NewConfigFile", func() {
 		testFile := "../../testdata/config.yaml"
 
 		// copy test config file
-		original, _ := ioutil.ReadFile("../../testdata/config.yaml")
+		original, _ := os.ReadFile("../../testdata/config.yaml")
 
 		_, err := NewConfigFile(testFile)
 
@@ -195,7 +194,7 @@ var _ = Describe("NewConfigFile", func() {
 		})
 
 		It("should not change existing config content", func() {
-			actual, err := ioutil.ReadFile(testFile)
+			actual, err := os.ReadFile(testFile)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(actual).To(Equal(original))
 		})

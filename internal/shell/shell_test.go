@@ -21,7 +21,7 @@ var _ = Describe("Shell", func() {
 			When("passing non-empty envs", func() {
 				It("should not return err", func() {
 					cmd := "echo"
-					err := sc.Execute([]string{cmd}, []config.Env{
+					err := sc.Execute([]string{cmd}, []*config.Env{
 						{Name: "meow", Value: "woof"},
 					}, "my-profile")
 					Expect(err).ToNot(HaveOccurred())
@@ -31,7 +31,7 @@ var _ = Describe("Shell", func() {
 			When("pass wrong arg to command", func() {
 				It("should return err", func() {
 					cmd := []string{"cat", "/not-existing-dir/not-existing-file-rand-meow"}
-					err := sc.Execute(cmd, []config.Env{
+					err := sc.Execute(cmd, []*config.Env{
 						{Name: "meow", Value: "woof"},
 					}, "my-profile")
 					Expect(err).To(HaveOccurred())
@@ -42,7 +42,7 @@ var _ = Describe("Shell", func() {
 		When("run non-existing command", func() {
 			It("should not return err", func() {
 				cmd := ""
-				err := sc.Execute([]string{cmd}, []config.Env{
+				err := sc.Execute([]string{cmd}, []*config.Env{
 					{Name: "meow", Value: "woof"},
 				}, "my-profile")
 				Expect(err).To(HaveOccurred())
@@ -66,7 +66,7 @@ var _ = Describe("Shell", func() {
 
 		When("pass not empty envs", func() {
 			It("should not return err", func() {
-				err := sc.StartShell([]config.Env{
+				err := sc.StartShell([]*config.Env{
 					{Name: "meow", Value: "woof"},
 				}, "my-profile")
 				Expect(err).ToNot(HaveOccurred())
@@ -104,27 +104,25 @@ var _ = Describe("Shell", func() {
 
 var _ = Describe("env functions", func() {
 
-	envs := config.Envs{
-		config.Env{
-			Name:  "PATH",
-			Value: "~/.config",
-		},
-		config.Env{
-			Name:  "HOME",
-			Value: "$HOME",
-		},
-	}
+	envs := config.Envs{}
+	envs.AddEnv("PATH", "~/.config")
+	envs.AddEnv("HOME", "$HOME")
+	errs := parseEnvs(envs)
 	h, _ := os.UserHomeDir()
-	pe := appendEnvpProfile(parseEnvs(envs), "my-profile")
+	pe := appendEnvpProfile(envs.Strings(), "my-profile")
+
+	It("should not occur error", func() {
+		Expect(errs).ToNot(HaveOccurred())
+	})
 
 	When("has ~ in the value", func() {
-		It("should extraced to abs home dir", func() {
+		It("should be extracted to abs home dir", func() {
 			Expect(pe).To(ContainElement(fmt.Sprintf("PATH=%s/.config", h)))
 		})
 	})
 
 	When("has $HOME in the value", func() {
-		It("should extraced to abs home dir", func() {
+		It("should be extracted to abs home dir", func() {
 			Expect(pe).To(ContainElement(fmt.Sprintf("HOME=%s", h)))
 		})
 	})
@@ -132,6 +130,51 @@ var _ = Describe("env functions", func() {
 	When("append profile env var", func() {
 		It("should include env var value of profile", func() {
 			Expect(pe).To(ContainElement(fmt.Sprintf("%s=my-profile", envpEnvVarKey)))
+		})
+	})
+})
+
+var _ = Describe("env shell command substitution", func() {
+
+	envs := config.Envs{}
+	envs.AddEnv("TEST_1", "VALUE_1")
+	envs.AddEnv("TEST_SUBST_1", "$(echo hello)")
+	envs.AddEnv("TEST_SUBST_2", "$(echo $TEST_1)")
+	envs.AddEnv("TEST_SUBST_3", "$(this-is-error)")
+	errs := parseEnvs(envs)
+
+	When("has $() in the value", func() {
+		It("should perform shell command substitution", func() {
+			Expect(envs.Strings()).To(ContainElement("TEST_SUBST_1=hello"))
+		})
+	})
+
+	When("referring another (earlier) env variable with command substitution", func() {
+		It("should get the value of other env var value and substitute with it", func() {
+			Expect(envs.Strings()).To(ContainElement("TEST_SUBST_2=VALUE_1"))
+		})
+	})
+
+	When("command in substitution is wrong", func() {
+		It("should occur error", func() {
+			Expect(errs).To(HaveOccurred())
+		})
+
+		It("should not perform substitution. keep original value", func() {
+			Expect(envs.Strings()).To(ContainElement("TEST_SUBST_3=$(this-is-error)"))
+		})
+
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
+		It("should not return err", func() {
+			err := sc.StartShell(envs, "")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(stdout.String()).NotTo(BeEmpty())
+			Expect(stderr.String()).NotTo(BeEmpty())
+			Expect(stderr.String()).To(ContainSubstring("error parsing value of TEST_SUBST_3"))
 		})
 	})
 })

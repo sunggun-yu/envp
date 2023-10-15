@@ -53,7 +53,7 @@ func addCommand() *cobra.Command {
 			name := args[0]
 			profile := config.Profile{
 				Desc: flags.desc,
-				Env:  []config.Env{},
+				Env:  []*config.Env{},
 			}
 			profile.Env = config.ParseEnvFlagToEnv(flags.env)
 

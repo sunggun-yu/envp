@@ -33,16 +33,6 @@ type NamedProfile struct {
 	IsDefault bool
 }
 
-// Envs is slice of Env
-type Envs []Env
-
-// Env represent environment variable name and value
-// go yaml doesn't support capitalized key. so follow k8s env format
-type Env struct {
-	Name  string `mapstructure:"name" yaml:"name"`
-	Value string `mapstructure:"value" yaml:"value"`
-}
-
 // ProfileNotExistingError is an error when expected profile is not existing
 type ProfileNotExistingError struct {
 	profile string
@@ -71,21 +61,6 @@ func (e *ProfileNameInputEmptyError) Error() string {
 // NewProfileNameInputEmptyError create new ProfileNameInputEmptyError
 func NewProfileNameInputEmptyError() *ProfileNameInputEmptyError {
 	return &ProfileNameInputEmptyError{}
-}
-
-// Override String() to make it KEY=VAL format
-func (e Env) String() string {
-	return fmt.Sprint(e.Name, "=", e.Value)
-}
-
-// Override strings() of Envs go generate comma separated string. this will be used for displaying env vars in list and start command.
-func (e Envs) String() string {
-	s := []string{}
-	for _, i := range e {
-		s = append(s, i.String())
-	}
-	r := strings.Join(s, ",")
-	return r
 }
 
 // SetProfile sets profile into the Profiles
