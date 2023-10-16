@@ -87,12 +87,12 @@ var _ = Describe("Shell", func() {
 			sh := os.Getenv("SHELL")
 
 			JustBeforeEach(func() {
-				// make SHELL empty to occur error
+				// make SHELL empty for test case
 				os.Setenv("SHELL", "")
 			})
-			It("should return err", func() {
+			It("it should not return err since it uses /bin/sh as default shell even SHELL is empty", func() {
 				err := sc.StartShell(nil, "my-profile")
-				Expect(err).To(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 			JustAfterEach(func() {
 				// revert SHELL to original
