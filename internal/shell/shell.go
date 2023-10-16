@@ -58,7 +58,7 @@ func (s *ShellCommand) StartShell(env config.Envs, profile string) error {
 	// execute the command
 	err := s.execCommand(sh, []string{sh, "-c", sh}, env, profile)
 	if err != nil {
-		s.Stderr.Write([]byte(fmt.Sprintln(err.Error())))
+		s.Stderr.Write([]byte(fmt.Sprintln(color.MagentaString(err.Error()))))
 	}
 
 	// TODO: do some template
@@ -112,10 +112,10 @@ func parseEnvs(envs config.Envs) (errs error) {
 		// it's ok to ignore error. it returns original value if it doesn't contain the home path
 		e.Value, _ = util.ExpandHomeDir(e.Value)
 		// parse command substitution value like $(some-command). treat error to let user to know there is error with it
-		v, err := parseCommandSubstitutionValue(e.Value, envs)
+		v, err := processCommandSubstitutionValue(e.Value, envs)
 		if err != nil {
 			// join errors
-			errs = errors.Join(errs, fmt.Errorf("[envp] error parsing value of %s: %s", e.Name, err))
+			errs = errors.Join(errs, fmt.Errorf("[envp] error processing value of %s: %s", e.Name, err))
 		} else {
 			e.Value = v
 		}
@@ -129,8 +129,8 @@ func appendEnvpProfile(envs []string, profile string) []string {
 	return envs
 }
 
-// parseCommandSubstitutionValue checks whether the env value is in the format of shell substitution $() and runs the shell to replace the env value with the result of its execution.
-func parseCommandSubstitutionValue(val string, envs config.Envs) (string, error) {
+// processCommandSubstitutionValue checks whether the env value is in the format of shell substitution $() and runs the shell to replace the env value with the result of its execution.
+func processCommandSubstitutionValue(val string, envs config.Envs) (string, error) {
 	// check if val is pattern of command substitution using regex
 	// support only $() substitution. not support `` substitution
 	re := regexp.MustCompile(`^\$\((.*?)\)`) // use MustCompile. no expect it's failing

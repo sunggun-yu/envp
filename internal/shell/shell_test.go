@@ -174,7 +174,7 @@ var _ = Describe("env shell command substitution", func() {
 			err := sc.StartShell(envs, "my-profile")
 			Expect(err).To(HaveOccurred())
 			Expect(stderr.String()).NotTo(BeEmpty())
-			Expect(stderr.String()).To(ContainSubstring("error parsing value of TEST_SUBST_3"))
+			Expect(stderr.String()).To(ContainSubstring("error processing value of TEST_SUBST_3"))
 		})
 	})
 })
