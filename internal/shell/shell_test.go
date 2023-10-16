@@ -170,6 +170,10 @@ var _ = Describe("env shell command substitution", func() {
 		sc.Stderr = &stderr
 
 		It("StartShell should show parsing error message in stderr", func() {
+			// make SHELL empty to occur error
+			// github action has no default SHELL. so set it as /bin/sh
+			os.Setenv("SHELL", "/bin/sh")
+
 			err := sc.StartShell(envs, "my-profile")
 			Expect(err).To(HaveOccurred())
 			Expect(stderr.String()).NotTo(BeEmpty())
