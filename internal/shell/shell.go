@@ -52,6 +52,9 @@ func (s *ShellCommand) StartShell(env config.Envs, profile string) error {
 
 	// execute the command
 	err := s.execCommand(sh, []string{sh, "-c", sh}, env, profile)
+	if err != nil {
+		s.Stderr.Write([]byte(fmt.Sprintln(err.Error())))
+	}
 
 	// TODO: do some template
 	// print end of session message
@@ -84,7 +87,7 @@ func (s *ShellCommand) execCommand(argv0 string, argv []string, envs config.Envs
 
 	err = parseEnvs(envs)
 	if err != nil {
-		cmd.Stderr.Write([]byte(fmt.Sprintln(err.Error())))
+		return err
 	}
 
 	// merge into os environment variables and set into the cmd
@@ -107,7 +110,7 @@ func parseEnvs(envs config.Envs) (errs error) {
 		v, err := parseCommandSubstitutionValue(e.Value, envs)
 		if err != nil {
 			// join errors
-			errs = errors.Join(errs, fmt.Errorf("error parsing value of %s: %s", e.Name, err))
+			errs = errors.Join(errs, fmt.Errorf("[envp] error parsing value of %s: %s", e.Name, err))
 		} else {
 			e.Value = v
 		}
