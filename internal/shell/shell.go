@@ -45,6 +45,11 @@ func (s *ShellCommand) Execute(cmd []string, env config.Envs, profile string) er
 func (s *ShellCommand) StartShell(env config.Envs, profile string) error {
 	sh := os.Getenv("SHELL")
 
+	// use /bin/sh if SHELL is not set
+	if sh == "" {
+		sh = "/bin/sh"
+	}
+
 	// TODO: do some template
 	// print start of session message
 	s.Stdout.Write([]byte(fmt.Sprintln(color.GreenString("Starting ENVP session..."), color.RedString(profile))))
