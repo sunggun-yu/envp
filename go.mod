@@ -6,7 +6,7 @@ require (
 	github.com/fatih/color v1.16.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/onsi/ginkgo/v2 v2.13.0
-	github.com/onsi/gomega v1.29.0
+	github.com/onsi/gomega v1.30.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
 	gopkg.in/yaml.v2 v2.4.0
