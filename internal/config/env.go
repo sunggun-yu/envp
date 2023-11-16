@@ -112,3 +112,9 @@ func SortEnv(e []*Env) {
 		return e[i].Name < e[j].Name
 	})
 }
+
+func DeleteEnv(key string, e Envs) Envs {
+	em := ParseEnvFlagToMap(e.Strings())
+	delete(em, key)
+	return MapToEnv(em)
+}
