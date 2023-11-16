@@ -144,6 +144,7 @@ func processCommandSubstitutionValue(val string, envs config.Envs) (string, erro
 	script := strings.TrimSpace(matches[1])
 	cmd := exec.Command("sh", "-c", script)
 	// append envs to cmd that runs command substitution as well to support the case that reuse env var as ref with substitution
+	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, envs.Strings()...)
 
 	// output, err := cmd.CombinedOutput()
