@@ -43,7 +43,7 @@ func startCommand(sh *shell.ShellCommand) *cobra.Command {
 			}
 
 			// ignore error message from shell. let shell print out the errors
-			sh.StartShell(profile.Env, profile.Name)
+			sh.StartShell(profile)
 
 			return nil
 		},

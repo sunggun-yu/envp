@@ -12,6 +12,14 @@ import (
 
 var _ = Describe("Shell", func() {
 
+	profile := config.NamedProfile{
+		Name:    "my-profile",
+		Profile: config.NewProfile(),
+	}
+	profile.Env = []*config.Env{
+		{Name: "meow", Value: "woof"},
+	}
+
 	Describe("run Execute", func() {
 
 		sc := NewShellCommand()
@@ -21,9 +29,7 @@ var _ = Describe("Shell", func() {
 			When("passing non-empty envs", func() {
 				It("should not return err", func() {
 					cmd := "echo"
-					err := sc.Execute([]string{cmd}, []*config.Env{
-						{Name: "meow", Value: "woof"},
-					}, "my-profile")
+					err := sc.Execute([]string{cmd}, &profile)
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})
@@ -31,9 +37,7 @@ var _ = Describe("Shell", func() {
 			When("pass wrong arg to command", func() {
 				It("should return err", func() {
 					cmd := []string{"cat", "/not-existing-dir/not-existing-file-rand-meow"}
-					err := sc.Execute(cmd, []*config.Env{
-						{Name: "meow", Value: "woof"},
-					}, "my-profile")
+					err := sc.Execute(cmd, &profile)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -42,9 +46,7 @@ var _ = Describe("Shell", func() {
 		When("run non-existing command", func() {
 			It("should not return err", func() {
 				cmd := ""
-				err := sc.Execute([]string{cmd}, []*config.Env{
-					{Name: "meow", Value: "woof"},
-				}, "my-profile")
+				err := sc.Execute([]string{cmd}, &profile)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -66,16 +68,18 @@ var _ = Describe("Shell", func() {
 
 		When("pass not empty envs", func() {
 			It("should not return err", func() {
-				err := sc.StartShell([]*config.Env{
-					{Name: "meow", Value: "woof"},
-				}, "my-profile")
+				err := sc.StartShell(&profile)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
 		When("pass nil envs", func() {
 			It("should not return err", func() {
-				err := sc.StartShell(nil, "")
+				profile := config.NamedProfile{
+					Name:    "",
+					Profile: config.NewProfile(),
+				}
+				err := sc.StartShell(&profile)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(stdout.String()).NotTo(BeEmpty())
 				Expect(stderr.String()).To(BeEmpty())
@@ -91,7 +95,11 @@ var _ = Describe("Shell", func() {
 				os.Setenv("SHELL", "")
 			})
 			It("it should not return err since it uses /bin/sh as default shell even SHELL is empty", func() {
-				err := sc.StartShell(nil, "my-profile")
+				profile := config.NamedProfile{
+					Name:    "my-profile",
+					Profile: config.NewProfile(),
+				}
+				err := sc.StartShell(&profile)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			JustAfterEach(func() {
@@ -143,6 +151,12 @@ var _ = Describe("env shell command substitution", func() {
 	envs.AddEnv("TEST_SUBST_3", "$(this-is-error)")
 	errs := parseEnvs(envs)
 
+	profile := config.NamedProfile{
+		Name:    "my-profile",
+		Profile: config.NewProfile(),
+	}
+	profile.Env = envs
+
 	When("has $() in the value", func() {
 		It("should perform shell command substitution", func() {
 			Expect(envs.Strings()).To(ContainElement("TEST_SUBST_1=hello"))
@@ -171,7 +185,7 @@ var _ = Describe("env shell command substitution", func() {
 
 		It("StartShell should show parsing error message in stderr", func() {
 
-			err := sc.StartShell(envs, "my-profile")
+			err := sc.StartShell(&profile)
 			Expect(err).To(HaveOccurred())
 			Expect(stderr.String()).NotTo(BeEmpty())
 			Expect(stderr.String()).To(ContainSubstring("error processing value of TEST_SUBST_3"))
