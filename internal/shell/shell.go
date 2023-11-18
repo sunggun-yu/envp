@@ -98,11 +98,39 @@ func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.
 	// merge into os environment variables and set into the cmd
 	cmd.Env = append(cmd.Env, profile.Env.Strings()...)
 
+	// run init-script
+	if err := s.executeInitScript(profile, true); err != nil {
+		return err
+	}
+
 	// run command
 	if err := cmd.Run(); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// executeInitScript executes the initial script for the shell
+func (s *ShellCommand) executeInitScript(profile *config.NamedProfile, silence bool) error {
+	initCmd := exec.Command("/bin/sh", "-c", profile.InitScript)
+	initCmd.Env = os.Environ()
+	// append envs to init-script so that both init and main shell can maintain common env var
+	initCmd.Env = append(initCmd.Env, profile.Env.Strings()...)
+	// make no output if silence is true
+	if silence {
+		err := initCmd.Run()
+		if err != nil {
+			return fmt.Errorf("init-script error: %w", err)
+		}
+		return nil
+	}
+	// print output in Shell if silence is false.
+	output, err := initCmd.Output()
+	if err != nil {
+		return err
+	}
+	s.Stdout.Write(output)
 	return nil
 }
 

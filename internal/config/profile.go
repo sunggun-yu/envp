@@ -14,9 +14,10 @@ type Profiles map[string]*Profile
 type Profile struct {
 	// set it with mapstructure remain to unmashal config file item `profiles` as Profile
 	// yaml inline fixed the nested profiles issue
-	Profiles Profiles `mapstructure:",remain" yaml:",inline"`
-	Desc     string   `mapstructure:"desc" yaml:"desc,omitempty"`
-	Env      Envs     `mapstructure:"env" yaml:"env,omitempty"`
+	Profiles   Profiles `mapstructure:",remain" yaml:",inline"`
+	Desc       string   `mapstructure:"desc" yaml:"desc,omitempty"`
+	Env        Envs     `mapstructure:"env" yaml:"env,omitempty"`
+	InitScript string   `mapstructure:"init-script" yaml:"init-script,omitempty"`
 }
 
 // NewProfile creates the Profile
