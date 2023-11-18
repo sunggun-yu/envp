@@ -192,3 +192,159 @@ var _ = Describe("env shell command substitution", func() {
 		})
 	})
 })
+
+var _ = Describe("init-script", func() {
+
+	When("init-script is defined", func() {
+
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
+		profile := config.NamedProfile{
+			Name:    "my-profile",
+			Profile: config.NewProfile(),
+		}
+		profile.InitScript = `echo "hello world"`
+
+		err := sc.executeInitScript(&profile, false)
+
+		It("should not error", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("execute defined script", func() {
+			Expect(stdout.String()).To(ContainSubstring("hello world"))
+		})
+	})
+
+	When("init-script has multi line of shell script", func() {
+
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
+		profile := config.NamedProfile{
+			Name:    "my-profile",
+			Profile: config.NewProfile(),
+		}
+		profile.InitScript = `
+		if [ 1 -gt 0 ]; then
+			echo "hello world"
+		else
+			echo "wrong~"
+		fi
+		`
+
+		err := sc.executeInitScript(&profile, false)
+
+		It("should not error", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("execute defined script", func() {
+			Expect(stdout.String()).To(ContainSubstring("hello world"))
+		})
+	})
+
+	When("init-script is wrong", func() {
+
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
+		profile := config.NamedProfile{
+			Name:    "my-profile",
+			Profile: config.NewProfile(),
+		}
+
+		profile.InitScript = "exit 1"
+		err := sc.StartShell(&profile)
+
+		It("should error", func() {
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("should show init-script error message in stderr", func() {
+			Expect(stderr.String()).To(ContainSubstring("init-script error"))
+		})
+	})
+
+	When("init-script use defined Env", func() {
+
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
+		profile := config.NamedProfile{
+			Name:    "my-profile",
+			Profile: config.NewProfile(),
+		}
+		profile.Env = []*config.Env{
+			{Name: "MY_VAR", Value: "MY_VAL"},
+		}
+		profile.InitScript = "echo $MY_VAR"
+
+		err := sc.executeInitScript(&profile, false)
+
+		It("should not error", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("execute defined script", func() {
+			Expect(stdout.String()).To(ContainSubstring("MY_VAL"))
+		})
+	})
+
+	When("silence is set to true", func() {
+
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
+		profile := config.NamedProfile{
+			Name:    "my-profile",
+			Profile: config.NewProfile(),
+		}
+		profile.InitScript = `echo "hello world"`
+
+		err := sc.executeInitScript(&profile, true)
+
+		It("should not error", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("output should be empty", func() {
+			Expect(stdout.String()).To(BeEmpty())
+		})
+	})
+
+	When("silence is set to false and init-script is wrong", func() {
+
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
+		profile := config.NamedProfile{
+			Name:    "my-profile",
+			Profile: config.NewProfile(),
+		}
+		profile.InitScript = "exit 1"
+
+		err := sc.executeInitScript(&profile, false)
+
+		It("should error", func() {
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("stderr should be empty", func() {
+			Expect(stderr.String()).To(BeEmpty())
+		})
+	})
+})
