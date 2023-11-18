@@ -37,12 +37,12 @@ func NewShellCommand() *ShellCommand {
 }
 
 // Execute executes given command
-func (s *ShellCommand) Execute(cmd []string, env config.Envs, profile string) error {
-	return s.execCommand(cmd[0], cmd, env, profile)
+func (s *ShellCommand) Execute(cmd []string, profile *config.NamedProfile) error {
+	return s.execCommand(cmd[0], cmd, profile)
 }
 
 // StartShell runs default shell of user to create new shell session
-func (s *ShellCommand) StartShell(env config.Envs, profile string) error {
+func (s *ShellCommand) StartShell(profile *config.NamedProfile) error {
 	sh := os.Getenv("SHELL")
 
 	// use /bin/sh if SHELL is not set
@@ -52,24 +52,24 @@ func (s *ShellCommand) StartShell(env config.Envs, profile string) error {
 
 	// TODO: do some template
 	// print start of session message
-	s.Stdout.Write([]byte(fmt.Sprintln(color.GreenString("Starting ENVP session..."), color.RedString(profile))))
+	s.Stdout.Write([]byte(fmt.Sprintln(color.GreenString("Starting ENVP session..."), color.RedString(profile.Name))))
 	s.Stdout.Write([]byte(fmt.Sprintln("> press ctrl+d or type exit to close session")))
 
 	// execute the command
-	err := s.execCommand(sh, []string{sh, "-c", sh}, env, profile)
+	err := s.execCommand(sh, []string{sh, "-c", sh}, profile)
 	if err != nil {
 		s.Stderr.Write([]byte(fmt.Sprintln(color.MagentaString(err.Error()))))
 	}
 
 	// TODO: do some template
 	// print end of session message
-	s.Stdout.Write([]byte(fmt.Sprintln(color.GreenString("ENVP session closed..."), color.RedString(profile))))
+	s.Stdout.Write([]byte(fmt.Sprintln(color.GreenString("ENVP session closed..."), color.RedString(profile.Name))))
 
 	return err
 }
 
 // execCommand executes the os/exec Command with environment variables injection
-func (s *ShellCommand) execCommand(argv0 string, argv []string, envs config.Envs, profile string) error {
+func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.NamedProfile) error {
 	// first arg should be the command to execute
 	// check if command can be found in the PATH
 	binary, err := exec.LookPath(argv0)
@@ -88,15 +88,15 @@ func (s *ShellCommand) execCommand(argv0 string, argv []string, envs config.Envs
 	// init cmd.Env with os.Environ()
 	cmd.Env = os.Environ()
 	// set ENVP_PROFILE
-	cmd.Env = appendEnvpProfile(cmd.Env, profile)
+	cmd.Env = appendEnvpProfile(cmd.Env, profile.Name)
 
-	err = parseEnvs(envs)
+	err = parseEnvs(profile.Env)
 	if err != nil {
 		return err
 	}
 
 	// merge into os environment variables and set into the cmd
-	cmd.Env = append(cmd.Env, envs.Strings()...)
+	cmd.Env = append(cmd.Env, profile.Env.Strings()...)
 
 	// run command
 	if err := cmd.Run(); err != nil {
