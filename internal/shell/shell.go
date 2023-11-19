@@ -99,7 +99,7 @@ func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.
 	cmd.Env = append(cmd.Env, profile.Env.Strings()...)
 
 	// run init-script
-	if err := s.executeInitScript(profile, true); err != nil {
+	if err := s.executeInitScript(profile); err != nil {
 		return err
 	}
 
@@ -112,25 +112,25 @@ func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.
 }
 
 // executeInitScript executes the initial script for the shell
-func (s *ShellCommand) executeInitScript(profile *config.NamedProfile, silence bool) error {
+func (s *ShellCommand) executeInitScript(profile *config.NamedProfile) error {
+
+	// just return if init-script is empty
+	if profile == nil || len(profile.InitScript) == 0 {
+		return nil
+	}
+
 	initCmd := exec.Command("/bin/sh", "-c", profile.InitScript)
+	initCmd.Stdin = s.Stdin
+	initCmd.Stdout = s.Stdout
+	initCmd.Stderr = s.Stderr
+
 	initCmd.Env = os.Environ()
 	// append envs to init-script so that both init and main shell can maintain common env var
 	initCmd.Env = append(initCmd.Env, profile.Env.Strings()...)
-	// make no output if silence is true
-	if silence {
-		err := initCmd.Run()
-		if err != nil {
-			return fmt.Errorf("init-script error: %w", err)
-		}
-		return nil
-	}
-	// print output in Shell if silence is false.
-	output, err := initCmd.Output()
+	err := initCmd.Run()
 	if err != nil {
-		return err
+		return fmt.Errorf("init-script error: %w", err)
 	}
-	s.Stdout.Write(output)
 	return nil
 }
 
