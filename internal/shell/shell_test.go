@@ -208,7 +208,7 @@ var _ = Describe("init-script", func() {
 		}
 		profile.InitScript = `echo "hello world"`
 
-		err := sc.executeInitScript(&profile, false)
+		err := sc.executeInitScript(&profile)
 
 		It("should not error", func() {
 			Expect(err).NotTo(HaveOccurred())
@@ -238,7 +238,7 @@ var _ = Describe("init-script", func() {
 		fi
 		`
 
-		err := sc.executeInitScript(&profile, false)
+		err := sc.executeInitScript(&profile)
 
 		It("should not error", func() {
 			Expect(err).NotTo(HaveOccurred())
@@ -289,7 +289,7 @@ var _ = Describe("init-script", func() {
 		}
 		profile.InitScript = "echo $MY_VAR"
 
-		err := sc.executeInitScript(&profile, false)
+		err := sc.executeInitScript(&profile)
 
 		It("should not error", func() {
 			Expect(err).NotTo(HaveOccurred())
@@ -300,31 +300,25 @@ var _ = Describe("init-script", func() {
 		})
 	})
 
-	When("silence is set to true", func() {
+	When("profile is nil", func() {
 
 		var stdout, stderr bytes.Buffer
 		sc := NewShellCommand()
 		sc.Stdout = &stdout
 		sc.Stderr = &stderr
 
-		profile := config.NamedProfile{
-			Name:    "my-profile",
-			Profile: config.NewProfile(),
-		}
-		profile.InitScript = `echo "hello world"`
-
-		err := sc.executeInitScript(&profile, true)
+		err := sc.executeInitScript(nil)
 
 		It("should not error", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("output should be empty", func() {
+		It("does nothing", func() {
 			Expect(stdout.String()).To(BeEmpty())
 		})
 	})
 
-	When("silence is set to false and init-script is wrong", func() {
+	When("init-script is empty", func() {
 
 		var stdout, stderr bytes.Buffer
 		sc := NewShellCommand()
@@ -335,16 +329,16 @@ var _ = Describe("init-script", func() {
 			Name:    "my-profile",
 			Profile: config.NewProfile(),
 		}
-		profile.InitScript = "exit 1"
+		profile.InitScript = ""
 
-		err := sc.executeInitScript(&profile, false)
+		err := sc.executeInitScript(&profile)
 
-		It("should error", func() {
-			Expect(err).To(HaveOccurred())
+		It("should not error", func() {
+			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("stderr should be empty", func() {
-			Expect(stderr.String()).To(BeEmpty())
+		It("does nothing", func() {
+			Expect(stdout.String()).To(BeEmpty())
 		})
 	})
 })
