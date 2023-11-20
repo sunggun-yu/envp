@@ -77,26 +77,18 @@ func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.
 		return err
 	}
 
-	// create command for binary
-	cmd := exec.Command(binary)
-	// set args
-	cmd.Args = argv
-	cmd.Stdout = s.Stdout
-	cmd.Stdin = s.Stdin
-	cmd.Stderr = s.Stderr
-
-	// init cmd.Env with os.Environ()
-	cmd.Env = os.Environ()
-	// set ENVP_PROFILE
-	cmd.Env = appendEnvpProfile(cmd.Env, profile.Name)
-
+	// TODO: refactor and make this clear separation of parsing and command substitution
 	err = parseEnvs(profile.Env)
 	if err != nil {
 		return err
 	}
 
-	// merge into os environment variables and set into the cmd
-	cmd.Env = append(cmd.Env, profile.Env.Strings()...)
+	// create command for binary
+	cmd := s.createCommand(&profile.Env, binary)
+	// set args
+	cmd.Args = argv
+	// set ENVP_PROFILE
+	cmd.Env = appendEnvpProfile(cmd.Env, profile.Name)
 
 	// run init-script
 	if err := s.executeInitScript(profile); err != nil {
@@ -119,19 +111,30 @@ func (s *ShellCommand) executeInitScript(profile *config.NamedProfile) error {
 		return nil
 	}
 
-	initCmd := exec.Command("/bin/sh", "-c", profile.InitScript)
-	initCmd.Stdin = s.Stdin
-	initCmd.Stdout = s.Stdout
-	initCmd.Stderr = s.Stderr
+	cmd := s.createCommand(&profile.Env, "/bin/sh", "-c", profile.InitScript)
 
-	initCmd.Env = os.Environ()
-	// append envs to init-script so that both init and main shell can maintain common env var
-	initCmd.Env = append(initCmd.Env, profile.Env.Strings()...)
-	err := initCmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("init-script error: %w", err)
 	}
 	return nil
+}
+
+// createCommand creates an *exec.Cmd instance configured with the provided command, arguments,
+// environment variables, and associates Stdin, Stdout, and Stderr with the ShellCommand instance.
+func (s *ShellCommand) createCommand(envs *config.Envs, cmd string, arg ...string) *exec.Cmd {
+
+	c := exec.Command(cmd, arg...)
+	c.Stdin = s.Stdin
+	c.Stdout = s.Stdout
+	c.Stderr = s.Stderr
+
+	// init command Env with os.Environ()
+	c.Env = os.Environ()
+	// append config Envs to command
+	c.Env = append(c.Env, envs.Strings()...)
+
+	return c
 }
 
 // parseEnvs parse config.Envs to "VAR=VAL" format string slice
