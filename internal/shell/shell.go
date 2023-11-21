@@ -6,12 +6,10 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/sunggun-yu/envp/internal/config"
-	"github.com/sunggun-yu/envp/internal/util"
 )
 
 // TODO: refactoring, cleanup
@@ -137,18 +135,29 @@ func (s *ShellCommand) createCommand(envs *config.Envs, cmd string, arg ...strin
 	return c
 }
 
-// parseEnvs parse config.Envs to "VAR=VAL" format string slice
+// parseEnvs parse Env values with shell echo
 func parseEnvs(envs config.Envs) (errs error) {
 	for _, e := range envs {
-		// it's ok to ignore error. it returns original value if it doesn't contain the home path
-		e.Value, _ = util.ExpandHomeDir(e.Value)
-		// parse command substitution value like $(some-command). treat error to let user to know there is error with it
-		v, err := processCommandSubstitutionValue(e.Value, envs)
-		if err != nil {
+		// parse env value with shell echo
+		cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("echo %s", e.Value))
+		// append envs to cmd that runs command substitution as well to support the case that reuse env var as ref with substitution
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, envs.Strings()...)
+
+		// it never occurs error since it is processed with shell echo.
+		// so that, it will not exit 1 even command substitution has error. and just print out empty line when it errors
+		output, _ := cmd.Output()
+		// trim new lines from result
+		result := strings.TrimRight(string(output), "\r\n")
+		// use os.ExpandEnv to replace all the ${var} or $var in the string according to the values of the current environment variables.
+		// so that $HOME will be replaced to current user's abs home dir
+		result = os.ExpandEnv(result)
+
+		if len(e.Value) > 0 && len(result) == 0 {
 			// join errors
-			errs = errors.Join(errs, fmt.Errorf("[envp] error processing value of %s: %s", e.Name, err))
+			errs = errors.Join(errs, fmt.Errorf("[envp] error processing value of %s: %s", e.Name, e.Value))
 		} else {
-			e.Value = v
+			e.Value = result
 		}
 	}
 	return errs
@@ -158,31 +167,4 @@ func parseEnvs(envs config.Envs) (errs error) {
 func appendEnvpProfile(envs []string, profile string) []string {
 	envs = append(envs, fmt.Sprintf("%s=%s", envpEnvVarKey, profile))
 	return envs
-}
-
-// processCommandSubstitutionValue checks whether the env value is in the format of shell substitution $() and runs the shell to replace the env value with the result of its execution.
-func processCommandSubstitutionValue(val string, envs config.Envs) (string, error) {
-	// check if val is pattern of command substitution using regex
-	// support only $() substitution. not support `` substitution
-	re := regexp.MustCompile(`^\$\((.*?)\)`) // use MustCompile. no expect it's failing
-
-	matches := re.FindStringSubmatch(val)
-	if len(matches) < 2 {
-		// no valid script found. just return original value
-		return val, nil
-	}
-
-	script := strings.TrimSpace(matches[1])
-	cmd := exec.Command("sh", "-c", script)
-	// append envs to cmd that runs command substitution as well to support the case that reuse env var as ref with substitution
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, envs.Strings()...)
-
-	// output, err := cmd.CombinedOutput()
-	output, err := cmd.Output()
-	if err != nil {
-		return val, fmt.Errorf("error executing script: %v", err)
-	}
-
-	return strings.TrimRight(string(output), "\r\n"), nil
 }
