@@ -110,7 +110,7 @@ var _ = Describe("Shell", func() {
 	})
 })
 
-var _ = Describe("env functions", func() {
+var _ = Describe("parseEnvs function", func() {
 
 	envs := config.Envs{}
 	envs.AddEnv("PATH", "~/.config")
@@ -138,6 +138,26 @@ var _ = Describe("env functions", func() {
 	When("append profile env var", func() {
 		It("should include env var value of profile", func() {
 			Expect(pe).To(ContainElement(fmt.Sprintf("%s=my-profile", envpEnvVarKey)))
+		})
+	})
+})
+
+var _ = Describe("parseEnvs with os.ExpandEnv", func() {
+	When("var is referencing other vars", func() {
+		envs := config.Envs{}
+		envs.AddEnv("VAR1", "VAL_1")
+		envs.AddEnv("VAR2", "$VAR1")
+		envs.AddEnv("VAR3", "my-$VAR2")
+		err := parseEnvs(envs)
+		pe := envs.Strings()
+
+		It("should not occur error", func() {
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("expanding value of other vars", func() {
+			Expect(pe).To(ContainElement("VAR2=VAL_1"))
+			Expect(pe).To(ContainElement("VAR3=my-VAL_1"))
 		})
 	})
 })
