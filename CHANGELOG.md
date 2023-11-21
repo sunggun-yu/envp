@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/sunggun-yu/envp/compare/v1.3.1...v1.3.2) (2023-11-21)
+
+
+### Bug Fixes
+
+* parseEnvs for expanding env and shell subst ([#99](https://github.com/sunggun-yu/envp/issues/99)) ([862ce36](https://github.com/sunggun-yu/envp/commit/862ce3666e3c853704da1f45780f63270fbc16df))
+
 ## [1.3.1](https://github.com/sunggun-yu/envp/compare/v1.3.0...v1.3.1) (2023-11-19)
 
 
