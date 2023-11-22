@@ -12,12 +12,12 @@ type Profiles map[string]*Profile
 // Profile is struct of profile
 // TODO: linked list might be better. but unmarshal may not be supported(need test). rebuilding structure after reading the config may required.
 type Profile struct {
-	// set it with mapstructure remain to unmashal config file item `profiles` as Profile
+	// set it with mapstructure remain to unmarshal config file item `profiles` as Profile
 	// yaml inline fixed the nested profiles issue
-	Profiles   Profiles `mapstructure:",remain" yaml:",inline"`
-	Desc       string   `mapstructure:"desc" yaml:"desc,omitempty"`
-	Env        Envs     `mapstructure:"env" yaml:"env,omitempty"`
-	InitScript string   `mapstructure:"init-script" yaml:"init-script,omitempty"`
+	Profiles   Profiles    `mapstructure:",remain" yaml:",inline"`
+	Desc       string      `mapstructure:"desc" yaml:"desc,omitempty"`
+	Env        Envs        `mapstructure:"env" yaml:"env,omitempty"`
+	InitScript interface{} `mapstructure:"init-script" yaml:"init-script,omitempty"`
 }
 
 // NewProfile creates the Profile
@@ -65,8 +65,8 @@ func NewProfileNameInputEmptyError() *ProfileNameInputEmptyError {
 }
 
 // SetProfile sets profile into the Profiles
-// key is dot "." delimetered or plain string without no space.
-// if it is dot delimeterd, considering it as nested profile
+// key is dot "." delimited or plain string without no space.
+// if it is dot delimited, considering it as nested profile
 func (p *Profiles) SetProfile(key string, profile Profile) error {
 	if key == "" {
 		return NewProfileNameInputEmptyError()
@@ -172,6 +172,39 @@ func (p *Profiles) DeleteProfile(key string) error {
 	return nil
 }
 
+// InitScripts returns an array of strings representing initialization scripts.
+// The `init-script` parameter can be either a string or an array of maps with the key `run`.
+// This function processes the input and returns an array of strings containing the extracted 'run' values from the provided maps,
+// or the original string if it's not an array of maps.
+func (p *Profile) InitScripts() []string {
+	// Return early if profile or init-script is empty
+	if p.InitScript == nil {
+		return nil
+	}
+
+	var initScripts []string
+
+	switch scripts := p.InitScript.(type) {
+	case string:
+		initScripts = append(initScripts, scripts)
+	case []interface{}:
+		for _, script := range scripts {
+			if m, ok := script.(map[string]interface{}); ok {
+				if runScript, exist := m["run"]; exist {
+					initScripts = append(initScripts, fmt.Sprintf("%v", runScript))
+				}
+			}
+		}
+	}
+
+	// return if initScripts is empty
+	if len(initScripts) == 0 {
+		return nil
+	}
+
+	return initScripts
+}
+
 // FindProfileByDotNotationKey finds profile from dot notation of key such as "a.b.c"
 // keys is array of string that in-order by nested profile. finding parent profile will be possible by keys[:len(keys)-1]
 func findProfileByDotNotationKey(keys []string, profiles *Profiles) *Profile {
@@ -188,7 +221,7 @@ func findProfileByDotNotationKey(keys []string, profiles *Profiles) *Profile {
 	return profile
 }
 
-// list all the profiles in dot "." format. e.g. mygroup.my-subgroup.my-profile
+// list all the profiles in dot "." format. e.g. my-group.my-subgroup.my-profile
 // Do DFS to build viper keys for profiles
 func listProfileKeys(key string, profiles Profiles, arr *[]string) *[]string {
 	for k, v := range profiles {

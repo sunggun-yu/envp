@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/sunggun-yu/envp/internal/util"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -59,7 +59,7 @@ func (c *ConfigFile) initConfigFile() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// return error if config file name is not seet
+	// return error if config file name is not set
 	if c.name == "" {
 		return fmt.Errorf("Config file is not set")
 	}
@@ -91,7 +91,7 @@ func (c *ConfigFile) Read() (*Config, error) {
 	if err := yaml.Unmarshal(b, &c.config); err != nil {
 		return nil, err
 	}
-	// set mutex to Config to syncronize object along with file operation
+	// set mutex to Config to synchronize object along with file operation
 	c.config.SetMutex(&c.mu)
 	return c.config, nil
 }

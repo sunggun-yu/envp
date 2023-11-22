@@ -362,3 +362,34 @@ var _ = Describe("init-script", func() {
 		})
 	})
 })
+
+var _ = Describe("multiple init-script", func() {
+	var stdout, stderr bytes.Buffer
+	sc := NewShellCommand()
+	sc.Stdout = &stdout
+	sc.Stderr = &stderr
+
+	When("multiple init-script is defined", func() {
+		profile := config.NamedProfile{
+			Name:    "my-profile",
+			Profile: config.NewProfile(),
+		}
+
+		var initScripts []interface{}
+		initScripts = append(initScripts, map[string]interface{}{"run": "echo meow-1"})
+		initScripts = append(initScripts, map[string]interface{}{"run": "echo meow-2"})
+		initScripts = append(initScripts, map[string]interface{}{"something-else": "echo meow-2"})
+
+		profile.InitScript = initScripts
+
+		err := sc.executeInitScript(&profile)
+
+		It("should not error", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("output should only have result of run(s)", func() {
+			Expect(stdout.String()).To(Equal("meow-1\nmeow-2\n"))
+		})
+	})
+})
