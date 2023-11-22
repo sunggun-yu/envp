@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/sunggun-yu/envp/compare/v1.3.2...v1.4.0) (2023-11-22)
+
+
+### Features
+
+* Add support for multiple init-script ([#101](https://github.com/sunggun-yu/envp/issues/101)) ([b27a0cd](https://github.com/sunggun-yu/envp/commit/b27a0cd986f1f4e497b64b20fc12f2050855e313))
+
 ## [1.3.2](https://github.com/sunggun-yu/envp/compare/v1.3.1...v1.3.2) (2023-11-21)
 
 
