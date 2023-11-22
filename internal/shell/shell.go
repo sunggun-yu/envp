@@ -103,17 +103,18 @@ func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.
 
 // executeInitScript executes the initial script for the shell
 func (s *ShellCommand) executeInitScript(profile *config.NamedProfile) error {
-
-	// just return if init-script is empty
-	if profile == nil || len(profile.InitScript) == 0 {
+	// Return if profile or init-script is empty
+	if profile == nil || profile.InitScript == nil {
 		return nil
 	}
 
-	cmd := s.createCommand(&profile.Env, "/bin/sh", "-c", profile.InitScript)
-
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("init-script error: %w", err)
+	// loop and run init script in order
+	for _, initScript := range profile.InitScripts() {
+		cmd := s.createCommand(&profile.Env, "/bin/sh", "-c", initScript)
+		err := cmd.Run()
+		if err != nil {
+			return fmt.Errorf("init-script error: %w", err)
+		}
 	}
 	return nil
 }

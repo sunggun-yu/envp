@@ -6,8 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/sunggun-yu/envp/internal/config"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -86,6 +87,11 @@ func TestProfileNames(t *testing.T) {
 		"org.nprod.vpn.vpn1",
 		"org.nprod.vpn.vpn2",
 		"parent-has-env",
+		"profile-with-init-script",
+		"profile-with-multi-init-script",
+		"profile-with-multi-init-script-but-no-run",
+		"profile-with-no-init-script",
+		"profile-with-single-init-script-but-array",
 	}
 
 	actual := profiles.ProfileNames()
@@ -111,8 +117,8 @@ func TestFindParentProfile(t *testing.T) {
 		testCaseNormal("lab.cluster1", "lab")
 	})
 
-	t.Run("find exisiting parent of non-existing child profile", func(t *testing.T) {
-		// should return parent even child is not exisiting
+	t.Run("find existing parent of non-existing child profile", func(t *testing.T) {
+		// should return parent even child is not existing
 		testCaseNormal("lab.cluster-not-existing-in-config", "lab")
 	})
 
@@ -123,7 +129,7 @@ func TestFindParentProfile(t *testing.T) {
 		}
 	})
 
-	t.Run("find non-exisiting parent of non-existing child profile", func(t *testing.T) {
+	t.Run("find non-existing parent of non-existing child profile", func(t *testing.T) {
 		// should return nil for non existing profile
 		if p, err := profiles.FindParentProfile("non-existing-parent.non-existing-child"); p != nil && err == nil {
 			t.Error("supposed to be nil and err")
@@ -181,7 +187,7 @@ func TestDeleteProfile(t *testing.T) {
 		testCase("org.nprod.argocd.argo2")
 	})
 
-	t.Run("delete non-exisiting nested profile", func(t *testing.T) {
+	t.Run("delete non-existing nested profile", func(t *testing.T) {
 		testCaseNonExistingProfile("non-existing-parent.non-existing-child")
 	})
 }
@@ -265,5 +271,51 @@ func TestSetProfile(t *testing.T) {
 		} else {
 			fmt.Println(string(out))
 		}
+	})
+}
+
+func TestProfileInitScript(t *testing.T) {
+
+	cfg := testDataConfig
+	profile := cfg().Profiles
+
+	t.Run("profile with no init-script", func(t *testing.T) {
+		p, err := profile.FindProfile("profile-with-no-init-script")
+		assert.NoError(t, err, "error should not occurred")
+		assert.NotEmpty(t, p, "profile is found")
+		expect := 0
+		assert.Len(t, p.InitScripts(), expect, fmt.Sprintf("should be %v init-script", expect))
+	})
+
+	t.Run("profile with single init-script", func(t *testing.T) {
+		p, err := profile.FindProfile("profile-with-init-script")
+		assert.NoError(t, err, "error should not occurred")
+		assert.NotEmpty(t, p, "profile is found")
+		expect := 1
+		assert.Len(t, p.InitScripts(), expect, fmt.Sprintf("should be %v init-script", expect))
+	})
+
+	t.Run("profile with single init-script but array type", func(t *testing.T) {
+		p, err := profile.FindProfile("profile-with-single-init-script-but-array")
+		assert.NoError(t, err, "error should not occurred")
+		assert.NotEmpty(t, p, "profile is found")
+		expect := 1
+		assert.Len(t, p.InitScripts(), expect, fmt.Sprintf("should be %v init-script", expect))
+	})
+
+	t.Run("profile with multiple init-script", func(t *testing.T) {
+		p, err := profile.FindProfile("profile-with-multi-init-script")
+		assert.NoError(t, err, "error should not occurred")
+		assert.NotEmpty(t, p, "profile is found")
+		expect := 2
+		assert.Len(t, p.InitScripts(), expect, fmt.Sprintf("should be %v init-script", expect))
+	})
+
+	t.Run("profile with multiple init-script but has no map of run keyword", func(t *testing.T) {
+		p, err := profile.FindProfile("profile-with-multi-init-script-but-no-run")
+		assert.NoError(t, err, "error should not occurred")
+		assert.NotEmpty(t, p, "profile is found")
+		expect := 0
+		assert.Len(t, p.InitScripts(), expect, fmt.Sprintf("should be %v init-script", expect))
 	})
 }

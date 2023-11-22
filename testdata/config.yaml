@@ -8,7 +8,7 @@ profiles:
       - name: HTTPS_PROXY
         value: http://192.168.1.10:443
       - name: NO_PROXY
-        value: localhost,127.0.0.1,.someapis.local
+        value: localhost,127.0.0.1,.some_apis.local
       - name: KUBECONFIG
         value: /Users/meow/.kube/lab-cluster1
     cluster2:
@@ -17,7 +17,7 @@ profiles:
       - name: HTTPS_PROXY
         value: http://192.168.1.20:443
       - name: NO_PROXY
-        value: localhost,127.0.0.1,.someapis.local
+        value: localhost,127.0.0.1,.some_apis.local
       - name: KUBECONFIG
         value: /Users/meow/.kube/lab-cluster2
     cluster3:
@@ -26,7 +26,7 @@ profiles:
       - name: HTTPS_PROXY
         value: http://192.168.1.30:443
       - name: NO_PROXY
-        value: localhost,127.0.0.1,.someapis.local
+        value: localhost,127.0.0.1,.some_apis.local
       - name: KUBECONFIG
         value: /Users/meow/.kube/lab-cluster3
   docker:
@@ -66,3 +66,34 @@ profiles:
           env:
           - name: HTTPS_PROXY
             value: http://192.168.2.11:3128
+  profile-with-init-script:
+    env:
+    - name: VAR
+      value: VAL
+    init-script: echo meow
+  profile-with-multi-init-script:
+    env:
+    - name: VAR
+      value: VAL
+    init-script:
+    - run: echo meow1
+    - run: echo meow2
+    - something-else: echo meow2
+  profile-with-multi-init-script-but-no-run:
+    env:
+    - name: VAR
+      value: VAL
+    init-script:
+    - something-else: echo meow1
+    - something-else: echo meow2
+    - something-else: echo meow2
+  profile-with-no-init-script:
+    env:
+    - name: VAR
+      value: VAL
+  profile-with-single-init-script-but-array:
+    env:
+    - name: VAR
+      value: VAL
+    init-script:
+    - run: echo meow
