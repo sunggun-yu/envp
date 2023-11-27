@@ -20,12 +20,6 @@ brew:
 brew install sunggun-yu/tap/envp
 ```
 
-go install:
-
-```bash
-go install github.com/sunggun-yu/envp@<version>
-```
-
 ## Quick Start
 
 ### Config file
