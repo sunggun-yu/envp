@@ -12,7 +12,7 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
+      releases_created: ${{ steps.release.outputs.release_created }}
     steps:
       - id: release
         uses: google-github-actions/release-please-action@v4
