@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/sunggun-yu/envp/compare/v1.4.0...v1.5.0) (2024-02-21)
+
+
+### Features
+
+* indicator for nested profile ([25caa08](https://github.com/sunggun-yu/envp/commit/25caa08cd90917dfcb68a5a5e1041ecb8c900271))
+
 ## [1.4.0](https://github.com/sunggun-yu/envp/compare/v1.3.2...v1.4.0) (2023-11-22)
 
 
