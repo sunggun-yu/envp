@@ -166,6 +166,13 @@ func parseEnvs(envs config.Envs) (errs error) {
 
 // appendEnvpProfile set ENVP_PROFILE env var to leverage profile info in the shell prompt, such as starship.
 func appendEnvpProfile(envs []string, profile string) []string {
-	envs = append(envs, fmt.Sprintf("%s=%s", envpEnvVarKey, profile))
+	// Check if the environment variable already has a value
+	if value, exists := os.LookupEnv(envpEnvVarKey); exists {
+		// Append the profile if it is already set
+		// conjunction with the previous value with ">" to indicate profiles are nested
+		envs = append(envs, fmt.Sprintf("%s=%s > %s", envpEnvVarKey, value, profile))
+	} else {
+		envs = append(envs, fmt.Sprintf("%s=%s", envpEnvVarKey, profile))
+	}
 	return envs
 }

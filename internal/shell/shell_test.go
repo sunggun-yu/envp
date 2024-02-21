@@ -393,3 +393,16 @@ var _ = Describe("multiple init-script", func() {
 		})
 	})
 })
+
+var _ = Describe("nested profiles", func() {
+
+	_ = os.Setenv(envpEnvVarKey, "profile-1")
+
+	When("append another profile into env var", func() {
+		envs := os.Environ()
+		envs = appendEnvpProfile(envs, "profile-2")
+		It("should include previous profile", func() {
+			Expect(envs).To(ContainElement(fmt.Sprintf("%s=profile-1 > profile-2", envpEnvVarKey)))
+		})
+	})
+})
