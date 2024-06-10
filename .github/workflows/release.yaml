@@ -41,7 +41,7 @@ jobs:
           private_key: ${{ secrets.PRIVATE_KEY }}
           repository: sunggun-yu/homebrew-tap
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
