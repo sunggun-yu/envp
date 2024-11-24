@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -54,8 +53,8 @@ var _ = Describe("Edit Command", func() {
 
 		// copy if copy is true. otherwise it will be fresh empty config file
 		if copy {
-			oiginal, _ := ioutil.ReadFile("../testdata/config.yaml")
-			ioutil.WriteFile(testConfigFile, oiginal, 0644)
+			original, _ := os.ReadFile("../testdata/config.yaml")
+			os.WriteFile(testConfigFile, original, 0644)
 		}
 
 		cmd.SetArgs(args)          // set the arg for each test case
@@ -86,7 +85,7 @@ var _ = Describe("Edit Command", func() {
 		})
 	})
 
-	When("edit profile that is not exisiting", func() {
+	When("edit profile that is not existing", func() {
 		profileName := "lab.cluster1"
 		envs := []string{"env1=var1", "env2=var2"}
 		BeforeEach(func() {

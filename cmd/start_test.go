@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -67,8 +66,8 @@ var _ = Describe("Start Command", func() {
 
 		// copy if copy is true. otherwise it will be fresh empty config file
 		if copy {
-			oiginal, _ := ioutil.ReadFile("../testdata/config.yaml")
-			ioutil.WriteFile(testConfigFile, oiginal, 0644)
+			original, _ := os.ReadFile("../testdata/config.yaml")
+			os.WriteFile(testConfigFile, original, 0644)
 		}
 
 		cmd.SetArgs(args)                               // set the arg for each test case

@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -54,8 +53,8 @@ var _ = Describe("Add Command", func() {
 
 		// copy if copy is true. otherwise it will be fresh empty config file
 		if copy {
-			original, _ := ioutil.ReadFile("../testdata/config.yaml")
-			ioutil.WriteFile(testConfigFile, original, 0644)
+			original, _ := os.ReadFile("../testdata/config.yaml")
+			os.WriteFile(testConfigFile, original, 0644)
 		}
 
 		cmd.SetArgs(args)          // set the arg for each test case
