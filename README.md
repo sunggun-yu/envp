@@ -60,3 +60,5 @@ You can create new shell session with injected environment variable from your pr
 # start new shell session with specific profile
 envp start my-profile
 ```
+
+just kick off test
