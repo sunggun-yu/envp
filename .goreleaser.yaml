@@ -1,5 +1,4 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
+version: 2
 
 project_name: envp
 
@@ -43,13 +42,13 @@ changelog:
 
 brews:
   - name: "envp"
-    tap:
+    repository:
       owner: sunggun-yu
       name: homebrew-tap
       branch: main
     description: "Cli wrapper to set profile based environment variables for your command line execution"
     homepage: https://github.com/sunggun-yu/envp
-    folder: Formula
+    directory: Formula
     download_strategy: CurlDownloadStrategy
     install: |
       bin.install "{{ .ProjectName }}"
