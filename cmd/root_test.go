@@ -201,8 +201,8 @@ var _ = Describe("Root Command", func() {
 		})
 	})
 
-	When("execute command with profile that is not exisiting", func() {
-		profileName := fmt.Sprintf("not-exisiting-profile-%v", GinkgoRandomSeed())
+	When("execute command with profile that is not existing", func() {
+		profileName := fmt.Sprintf("not-existing-profile-%v", GinkgoRandomSeed())
 		BeforeEach(func() {
 			args = append(args, profileName, "--", "echo", "hello")
 		})
@@ -212,7 +212,7 @@ var _ = Describe("Root Command", func() {
 		})
 	})
 
-	When("execute command but shell command that is not exisiting", func() {
+	When("execute command but shell command that is not existing", func() {
 		profileName := "lab.cluster2"
 		BeforeEach(func() {
 			args = append(args, profileName, "--", "1293471029384701298374019872498-aslkaslkjasdfjklasdfjklasdf-202020202")
@@ -223,40 +223,34 @@ var _ = Describe("Root Command", func() {
 		})
 	})
 
-	// When("execute start command with empty string of profile", func() {
-	// 	profileName := ""
-	// 	BeforeEach(func() {
-	// 		args = append(args, profileName)
-	// 		input = "echo hello"
-	// 	})
+	When("execute start command with profile that has init-script", func() {
+		// profile-with-init-script profile do "echo meow"
+		// so that, we should see "meow" in the stdout
+		BeforeEach(func() {
+			args = append(args, "profile-with-init-script", "--", "echo", "hello")
+		})
 
-	// 	It("should be error", func() {
-	// 		Expect(err).Should(HaveOccurred())
-	// 	})
-	// })
+		It("output should include result of init-script", func() {
+			fmt.Println(stdout.String(), err)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(stdout.String()).Should(ContainSubstring("meow"))
+			Expect(stdout.String()).Should(ContainSubstring("hello"))
+		})
+	})
 
-	// When("execute start command with valid inputs but omit profile name", func() {
-	// 	BeforeEach(func() {
-	// 		args = []string{}
-	// 		input = "env"
-	// 	})
+	When("execute start command with skip-init flag", func() {
+		// profile-with-init-script profile do "echo meow"
+		// so that, we should see "meow" in the stdout
+		// but, "meow" should not seen because "skip-init" flag has passed
+		BeforeEach(func() {
+			args = append(args, "profile-with-init-script", "--skip-init", "--", "echo", "hello")
+		})
 
-	// 	It("should not be error", func() {
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	// 	})
-
-	// 	It("should execute for default profile and include environment variable of default profile", func() {
-	// 		p, err := cfg.DefaultProfile()
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	// 		for _, e := range p.Env {
-	// 			Expect(stdout.String()).Should(ContainSubstring(e.String()))
-	// 		}
-	// 	})
-
-	// 	It("should include ENVP_PROFILE environment variable that is match to default profile", func() {
-	// 		p, err := cfg.DefaultProfile()
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	// 		Expect(stdout.String()).Should(ContainSubstring(fmt.Sprintf("ENVP_PROFILE=%s", p.Name)))
-	// 	})
-	// })
+		It("output should NOT include result of init-script", func() {
+			fmt.Println(stdout.String(), err)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(stdout.String()).ShouldNot(ContainSubstring("meow"))
+			Expect(stdout.String()).Should(ContainSubstring("hello"))
+		})
+	})
 })

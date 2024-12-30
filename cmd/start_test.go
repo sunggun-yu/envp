@@ -101,8 +101,8 @@ var _ = Describe("Start Command", func() {
 		})
 	})
 
-	When("execute start command with profile that is not exisiting", func() {
-		profileName := fmt.Sprintf("not-exisiting-profile-%v", GinkgoRandomSeed())
+	When("execute start command with profile that is not existing", func() {
+		profileName := fmt.Sprintf("not-existing-profile-%v", GinkgoRandomSeed())
 		BeforeEach(func() {
 			args = append(args, profileName)
 			input = "echo hello"
@@ -147,6 +147,40 @@ var _ = Describe("Start Command", func() {
 			p, err := cfg.DefaultProfile()
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(stdout.String()).Should(ContainSubstring(fmt.Sprintf("ENVP_PROFILE=%s", p.Name)))
+		})
+	})
+
+	When("execute start command with profile that has init-script", func() {
+		// profile-with-init-script profile do "echo meow"
+		// so that, we should see "meow" in the stdout
+		profileName := "profile-with-init-script"
+		BeforeEach(func() {
+			args = append(args, profileName)
+			input = "exit"
+		})
+
+		It("output should include result of init-script", func() {
+			fmt.Println(stdout.String(), err)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(stdout.String()).Should(ContainSubstring("meow"))
+		})
+	})
+
+	When("execute start command with skip-init flag", func() {
+		// profile-with-init-script profile do "echo meow"
+		// so that, we should see "meow" in the stdout
+		// but, "meow" should not seen because "skip-init" flag has passed
+		profileName := "profile-with-init-script"
+		BeforeEach(func() {
+			args = append(args, profileName)
+			args = append(args, "--skip-init")
+			input = "exit"
+		})
+
+		It("output should NOT include result of init-script", func() {
+			fmt.Println(stdout.String(), err)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(stdout.String()).ShouldNot(ContainSubstring("meow"))
 		})
 	})
 })

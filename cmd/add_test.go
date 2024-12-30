@@ -84,7 +84,7 @@ var _ = Describe("Add Command", func() {
 		})
 	})
 
-	When("add profile that is already exisiting", func() {
+	When("add profile that is already existing", func() {
 		profileName := "lab.cluster1"
 		envs := []string{"env1=var1", "env2=var2"}
 		BeforeEach(func() {
