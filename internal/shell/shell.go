@@ -35,12 +35,12 @@ func NewShellCommand() *ShellCommand {
 }
 
 // Execute executes given command
-func (s *ShellCommand) Execute(cmd []string, profile *config.NamedProfile) error {
-	return s.execCommand(cmd[0], cmd, profile)
+func (s *ShellCommand) Execute(cmd []string, profile *config.NamedProfile, skipInitScript bool) error {
+	return s.execCommand(cmd[0], cmd, profile, skipInitScript)
 }
 
 // StartShell runs default shell of user to create new shell session
-func (s *ShellCommand) StartShell(profile *config.NamedProfile) error {
+func (s *ShellCommand) StartShell(profile *config.NamedProfile, skipInitScript bool) error {
 	sh := os.Getenv("SHELL")
 
 	// use /bin/sh if SHELL is not set
@@ -54,7 +54,7 @@ func (s *ShellCommand) StartShell(profile *config.NamedProfile) error {
 	s.Stdout.Write([]byte(fmt.Sprintln("> press ctrl+d or type exit to close session")))
 
 	// execute the command
-	err := s.execCommand(sh, []string{sh, "-c", sh}, profile)
+	err := s.execCommand(sh, []string{sh, "-c", sh}, profile, skipInitScript)
 	if err != nil {
 		s.Stderr.Write([]byte(fmt.Sprintln(color.MagentaString(err.Error()))))
 	}
@@ -67,7 +67,7 @@ func (s *ShellCommand) StartShell(profile *config.NamedProfile) error {
 }
 
 // execCommand executes the os/exec Command with environment variables injection
-func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.NamedProfile) error {
+func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.NamedProfile, skipInitScript bool) error {
 	// first arg should be the command to execute
 	// check if command can be found in the PATH
 	binary, err := exec.LookPath(argv0)
@@ -88,9 +88,11 @@ func (s *ShellCommand) execCommand(argv0 string, argv []string, profile *config.
 	// set ENVP_PROFILE
 	cmd.Env = appendEnvpProfile(cmd.Env, profile.Name)
 
-	// run init-script
-	if err := s.executeInitScript(profile); err != nil {
-		return err
+	if !skipInitScript {
+		// run init-script
+		if err := s.executeInitScript(profile); err != nil {
+			return err
+		}
 	}
 
 	// run command

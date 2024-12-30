@@ -10,6 +10,11 @@ func init() {
 	rootCmd.AddCommand(startCommand(shell.NewShellCommand()))
 }
 
+// flags struct for start command
+type startFlags struct {
+	skipInitScript bool
+}
+
 // example of delete command
 func cmdExampleStart() string {
 	return `
@@ -18,11 +23,17 @@ func cmdExampleStart() string {
 
   # start new shell session with specific profile
   envp start <profile-name>
+
+  # skip "init-script" of profile when start new shell session with specific profile
+  envp start <profile-name> --skip-init
   `
 }
 
 // deleteCommand delete/remove environment variable profile and it's envionment variables from the config file
 func startCommand(sh *shell.ShellCommand) *cobra.Command {
+
+	// add flags
+	var flags startFlags
 
 	cmd := &cobra.Command{
 		Use:               "start profile-name",
@@ -43,10 +54,13 @@ func startCommand(sh *shell.ShellCommand) *cobra.Command {
 			}
 
 			// ignore error message from shell. let shell print out the errors
-			sh.StartShell(profile)
+			sh.StartShell(profile, flags.skipInitScript)
 
 			return nil
 		},
 	}
+
+	cmd.Flags().BoolVarP(&flags.skipInitScript, "skip-init", "s", false, `Skip running initialization scripts from the profile's "init-script" during shell startup`)
+
 	return cmd
 }

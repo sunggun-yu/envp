@@ -53,11 +53,22 @@ func cmdExampleRoot() string {
   
   # specify env var profile to use
   envp profile-name -- kubectl get namespaces
+
+	# skip init-script
+  envp profile-name --skip-init -- kubectl get namespaces
   `
+}
+
+// flags struct for start command
+type rootFlags struct {
+	skipInitScript bool
 }
 
 // rootCommand sets environment variable and execute command line
 func rootCommand(sh *shell.ShellCommand) *cobra.Command {
+
+	// add flags
+	var flags rootFlags
 
 	cmd := &cobra.Command{
 		Use:               "envp profile-name [flags] -- [command line to execute, e.g. kubectl]",
@@ -111,12 +122,14 @@ func rootCommand(sh *shell.ShellCommand) *cobra.Command {
 			}
 
 			// Execute command
-			if err := sh.Execute(command, profile); err != nil {
+			if err := sh.Execute(command, profile, flags.skipInitScript); err != nil {
 				return err
 			}
 			return nil
 		},
 	}
+
+	cmd.Flags().BoolVarP(&flags.skipInitScript, "skip-init", "s", false, `Skip running initialization scripts from the profile's "init-script"`)
 
 	return cmd
 }

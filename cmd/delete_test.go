@@ -104,7 +104,7 @@ var _ = Describe("Edit Command", func() {
 	})
 
 	When("delete profile that is not existing", func() {
-		profileName := fmt.Sprintf("not-exisiting-profile-%v", GinkgoRandomSeed())
+		profileName := fmt.Sprintf("not-existing-profile-%v", GinkgoRandomSeed())
 		BeforeEach(func() {
 			args = append(args, profileName)
 			input = "y"

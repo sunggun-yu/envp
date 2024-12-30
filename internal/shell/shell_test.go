@@ -22,14 +22,17 @@ var _ = Describe("Shell", func() {
 
 	Describe("run Execute", func() {
 
+		var stdout, stderr bytes.Buffer
 		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
 
 		Context("eligible command", func() {
 
 			When("passing non-empty envs", func() {
 				It("should not return err", func() {
 					cmd := "echo"
-					err := sc.Execute([]string{cmd}, &profile)
+					err := sc.Execute([]string{cmd}, &profile, false)
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})
@@ -37,7 +40,7 @@ var _ = Describe("Shell", func() {
 			When("pass wrong arg to command", func() {
 				It("should return err", func() {
 					cmd := []string{"cat", "/not-existing-dir/not-existing-file-rand-meow"}
-					err := sc.Execute(cmd, &profile)
+					err := sc.Execute(cmd, &profile, false)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -46,11 +49,29 @@ var _ = Describe("Shell", func() {
 		When("run non-existing command", func() {
 			It("should not return err", func() {
 				cmd := ""
-				err := sc.Execute([]string{cmd}, &profile)
+				err := sc.Execute([]string{cmd}, &profile, false)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
+		When("skip-init param is true", func() {
+
+			profile := config.NamedProfile{
+				Name:    "my-profile",
+				Profile: config.NewProfile(),
+			}
+
+			// The init script contains 'exit 1' which would normally cause an error,
+			// but since skip-init=true, the script will be skipped entirely
+			profile.InitScript = "exit 1"
+
+			It("should not error because init-script won't be running", func() {
+				cmd := []string{"echo", "hello"}
+				err := sc.Execute(cmd, &profile, true)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(stdout.String()).Should(ContainSubstring("hello"))
+			})
+		})
 	})
 
 	Describe("run StartShell", func() {
@@ -68,7 +89,7 @@ var _ = Describe("Shell", func() {
 
 		When("pass not empty envs", func() {
 			It("should not return err", func() {
-				err := sc.StartShell(&profile)
+				err := sc.StartShell(&profile, false)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -79,7 +100,7 @@ var _ = Describe("Shell", func() {
 					Name:    "",
 					Profile: config.NewProfile(),
 				}
-				err := sc.StartShell(&profile)
+				err := sc.StartShell(&profile, false)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(stdout.String()).NotTo(BeEmpty())
 				Expect(stderr.String()).To(BeEmpty())
@@ -99,7 +120,7 @@ var _ = Describe("Shell", func() {
 					Name:    "my-profile",
 					Profile: config.NewProfile(),
 				}
-				err := sc.StartShell(&profile)
+				err := sc.StartShell(&profile, false)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			JustAfterEach(func() {
@@ -205,7 +226,7 @@ var _ = Describe("env shell command substitution", func() {
 
 		It("StartShell should show parsing error message in stderr", func() {
 
-			err := sc.StartShell(&profile)
+			err := sc.StartShell(&profile, false)
 			Expect(err).To(HaveOccurred())
 			Expect(stderr.String()).NotTo(BeEmpty())
 			Expect(stderr.String()).To(ContainSubstring("error processing value of TEST_SUBST_3"))
@@ -282,7 +303,7 @@ var _ = Describe("init-script", func() {
 		}
 
 		profile.InitScript = "exit 1"
-		err := sc.StartShell(&profile)
+		err := sc.StartShell(&profile, false)
 
 		It("should error", func() {
 			Expect(err).To(HaveOccurred())
@@ -290,6 +311,28 @@ var _ = Describe("init-script", func() {
 
 		It("should show init-script error message in stderr", func() {
 			Expect(stderr.String()).To(ContainSubstring("init-script error"))
+		})
+	})
+
+	When("skip-init param is true", func() {
+
+		var stdout, stderr bytes.Buffer
+		sc := NewShellCommand()
+		sc.Stdout = &stdout
+		sc.Stderr = &stderr
+
+		profile := config.NamedProfile{
+			Name:    "my-profile",
+			Profile: config.NewProfile(),
+		}
+
+		// The init script contains 'exit 1' which would normally cause an error,
+		// but since skip-init=true, the script will be skipped entirely
+		profile.InitScript = "exit 1"
+		err := sc.StartShell(&profile, true)
+
+		It("should not error because init-script won't be running", func() {
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
