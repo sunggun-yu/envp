@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/sunggun-yu/envp/compare/v1.5.0...v1.6.0) (2024-12-30)
+
+
+### Features
+
+* adding option for skipping init-script ([#141](https://github.com/sunggun-yu/envp/issues/141)) ([4dd317f](https://github.com/sunggun-yu/envp/commit/4dd317f9ad45297da33d6eef140c35b4dd574b83)), closes [#140](https://github.com/sunggun-yu/envp/issues/140)
+
 ## [1.5.0](https://github.com/sunggun-yu/envp/compare/v1.4.0...v1.5.0) (2024-02-21)
 
 
